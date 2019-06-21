@@ -1,0 +1,71 @@
+<LoginScreen>
+    BoxLayout:
+        padding: root.width * .25, root.height * .25, root.width * .25, root.height * .25
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: 0, 0, 1, .25
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        BoxLayout:
+            orientation: 'horizontal'
+            AnchorLayout:
+                anchor_x: 'center'
+                anchor_y: 'center'
+                padding: 0, 0, self.width * .15, 0
+                MyLabel:
+                    text: "Username: "
+            AnchorLayout:
+                anchor_x: 'center'
+                anchor_y: 'center'
+                padding: 0, self.height * .2, 0, self.height * .2
+                TextInput:
+                    write_tab: False
+                    multiline: False
+                    background_color: 1, 1, 1, .75
+                    foreground_color: 0, 0, 0, .5
+                    id: username
+                    font_size: self.height * .55
+                    size_hint: 1.25, .5
+        BoxLayout:
+            orientation: 'horizontal'
+            AnchorLayout:
+                anchor_x: 'center'
+                anchor_y: 'center'
+                padding: 0, 0, self.width * .15, 0
+                MyLabel:
+                    text: "Password: "
+            AnchorLayout:
+                anchor_x: 'center'
+                anchor_y: 'center'
+                padding: 0, self.height * .2, 0, self.height * .2
+                TextInput:
+                    password: True
+                    write_tab: False
+                    multiline: False
+                    background_color: 1, 1, 1, .75
+                    foreground_color: 0, 0, 0, .5
+                    id: password
+                    font_size: self.height * .55
+                    size_hint: 1.25, .5
+        AnchorLayout:
+            anchor_x: 'center'
+            anchor_y: 'center'
+            size_hint: 1, .25
+            MyLabel:
+                id: status
+                text: " "
+                color: 1, 0, 0, .5
+        BoxLayout:
+            padding: 10
+            BoxLayout:
+            AnchorLayout:
+                anchor_x: 'center'
+                anchor_y: 'center'
+                Button:
+                    size_hint: 2, .5
+                    text: "Login"
+                    id: logBut
+                    focus: False
+            BoxLayout:

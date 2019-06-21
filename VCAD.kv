@@ -1,0 +1,283 @@
+<CallWidget>:
+    BoxLayout:
+        id: layout
+        orientation: 'horizontal'
+        canvas.before:
+            Color:
+                rgba: 0, 0, 0, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        MyLabel:
+            id: time
+            color: 0, 1, 0, .5
+            text: "Time"
+        MyLabel:
+            color: 0, 1, 0, .5
+            id: address
+            text: "Address"
+        Button:
+            id: report
+            on_press: root.callThis()
+            color: 0, 1, 0, .5
+            text: "Report"
+
+
+<HBoxWidget>:
+	BoxLayout:
+		size: root.size
+		pos: root.pos
+		id: boxlayout_h
+		orientation: 'horizontal'
+
+        canvas.before:
+            Color:
+                rgba: 0, 0, 1, .25
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        GridLayout:
+            rows: 9
+            BoxLayout:
+                size_hint: 1, .5
+                padding: 0, 5, 0, 0
+                MyLabel:
+                    size_hint: 1, .75
+                    text: 'Current Call'
+
+
+            BoxLayout:
+                size_hint: 1, .75
+                padding: 20, 5
+                orientation: 'horizontal'
+                MyLabel:
+                    size_hint: .5, .75
+                    font_size: self.height * .5
+                    text: '   Call Type:  '
+                MyLabel:
+                    text: 'Break in'
+                    size_hint: 1, .75
+                    font_size: '50dp'
+                    color: 0, 1, 0, .5
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+
+            BoxLayout:
+                size_hint: 1, .75
+                padding: 20, 5
+                orientation: 'horizontal'
+                MyLabel:
+                    size_hint: .5, .75
+                    font_size: self.height * .5
+                    text: 'Street Address: '
+                MyLabel:
+                    text: '123 S Main Street'
+                    size_hint: 1, .75
+                    font_size: self.height * .75
+                    color: 0, 1, 0, .5
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+            BoxLayout:
+                size_hint: 1, .75
+                padding: 20, 5
+                orientation: 'horizontal'
+                MyLabel:
+                    size_hint: .5, .75
+                    font_size: self.height * .5
+                    text: '     City:     '
+                MyLabel:
+                    text: 'Milwaukee'
+                    size_hint: 1, .75
+                    font_size: self.height * .75
+                    color: 0, 1, 0, .5
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+
+            BoxLayout:
+                size_hint: 1, .75
+                padding: 20, 5
+                orientation: 'horizontal'
+                MyLabel:
+                    size_hint: .5, .75
+                    font_size: self.height * .5
+                    text: '   Zip Code:   '
+                MyLabel:
+                    text: '12345'
+                    size_hint: 1, .75
+                    font_size: self.height * .75
+                    color: 0, 1, 0, .5
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+
+            BoxLayout:
+                size_hint: 1, .75
+                padding: 20, 5
+                orientation: 'horizontal'
+                MyLabel:
+                    size_hint: .5, .75
+                    font_size: self.height * .5
+                    text: '     Place:    '
+                MyLabel:
+                    text: 'Residential'
+                    size_hint: 1, .75
+                    font_size: self.height * .75
+                    color: 0, 1, 0, .5
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+
+            BoxLayout:
+                size_hint: 1, .75
+                padding: 20, 5
+                orientation: 'horizontal'
+
+                MyLabel:
+                    size_hint: .5, .75
+                    font_size: self.height * .5
+                    text: '     Phone:    '
+                MyLabel:
+                    text: '123-456-7891'
+                    size_hint: 1, .75
+                    font_size: self.height * .75
+                    color: 0, 1, 0, .5
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+
+            BoxLayout:
+                size_hint: 1, 1
+                padding: 20, 5
+                orientation: 'horizontal'
+                MyLabel:
+                    size_hint: .5, .75
+                    text: '  Description: '
+                ScrollView:
+                    scroll_x: 1
+                    size_hint: 1, 1
+                    Label:
+                        size_hint: 1, None
+                        size: self.texture_size
+                        text: 'There was glass broken near the door, door was wide open.'
+                        color: 0, 1, 0, .5
+                        font_size: self.height * .07
+                        text_size: self.width, self.height
+                        height: self.texture_size[0]
+                        halign: 'left'
+                        valign: 'top'
+                        canvas.before:
+                            Color:
+                                rgba: 0, 0, 0, 1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+
+            BoxLayout:
+                size_hint: 1, .5
+                padding: 5, 5 , 20 , 5
+                orientation: 'horizontal'
+                MyLabel:
+                    text: 'Write Report:'
+
+                BoxLayout:
+
+                    Button:
+                        size_x: .5
+                        text: 'Write Report'
+
+        CallsBox
+
+<CallsBox>
+
+
+<CallsList>
+    GridLayout:
+        cols: 100
+        id: callsList
+        size: root.size
+        size_hint: None, None
+        orientation: "vertical"
+        height: self.minimum_height
+        cols:1
+        row_minimum: 50
+        spacing: 100
+
+
+<OfficerScreen>:
+    GridLayout:
+        rows: 2
+        AnchorLayout:
+
+            canvas.before:
+                Color:
+                    rgba: 1, 0, 0, .5
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            anchor_x: 'center'
+            anchor_y: 'top'
+            size_hint: .1, .1
+
+
+            GridLayout:
+                padding: 10, 10
+                cols: 5
+                BoxLayout:
+                    padding: 30, 5
+                    size_hint: .25, .75
+                    MyLabel:
+                        id: officerName
+                BoxLayout:
+                    padding: 30, 5
+                    size_hint: .25, .75
+                    MyLabel:
+                        id: status
+                        size_hint: 1, .75
+                        font_size: self.height * .75
+                        text: "10-8 - In Service"
+                BoxLayout:
+                    padding: 30, 5
+                    size_hint: .25, .75
+                    ToggleButton:
+                        id: tenSeven
+                        text: '10-7'
+                        on_state: root.press107()
+
+                BoxLayout:
+                    padding: 30, 5
+                    size_hint: .25, .75
+                    ToggleButton:
+                        id: tenEight
+                        state: "down"
+                        text: '10-8'
+                        on_state: root.press108()
+
+                BoxLayout:
+                    padding: 30, 5
+                    size_hint: .25, .75
+                    Button:
+                        text: 'Logout'
+                        id: logout
+        HBoxWidget

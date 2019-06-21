@@ -1,0 +1,204 @@
+<DispatchScreen>
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            padding: 10
+            orientation: 'horizontal'
+            size_hint: 1, .1
+            canvas.before:
+                Color:
+                    rgba: 1, 0, 0, .5
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            MyLabel:
+                id: dispatcherName
+            BoxLayout:
+            BoxLayout:
+            Button:
+                text: 'Logout'
+                id: logout
+        BoxLayout:
+            # Under banner stuff
+            orientation: 'horizontal'
+            canvas.before:
+                Color:
+                    rgba: 0, 0, 1, .25
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            GridLayout:
+                id: call
+                padding: 8
+                rows: 7
+                cols: 1
+                # Call Creation
+                size_hint: 1, 1
+                orientation: 'vertical'
+                BoxLayout:
+                    size_hint: 1, .75
+                    orientation: 'horizontal'
+                    MyLabel:
+                        text: "   Call Type:  "
+                        size_hint: .5, .75
+                    BoxLayout:
+                        padding: 20, 5, 0, 5
+                        TextInput:
+                            write_tab: False
+                            multiline: False
+                            on_text_validate: root.streetAddr()
+                            background_color: 0, 0, 0, 1
+                            foreground_color: 0, 1, 0, .5
+                            id: callType
+                            font_size: self.height * .55
+                            size_hint: 1.5, .75
+                BoxLayout:
+                    # Call Creation
+                    orientation: 'vertical'
+                    BoxLayout:
+                        size_hint: 1, .75
+                        orientation: 'horizontal'
+                        MyLabel:
+                            size_hint: .5, .75
+                            text: "Street Address:"
+                        BoxLayout:
+                            padding: 20, 5, 0, 5
+                            TextInput:
+                                id: streetAddr
+                                write_tab: False
+                                multiline: False
+                                background_color: 0, 0, 0, 1
+                                foreground_color: 0, 1, 0, .5
+                                font_size: self.height * .45
+                                size_hint: 1.5, .75
+                BoxLayout:
+                    # Call Creation
+                    orientation: 'vertical'
+                    BoxLayout:
+                        size_hint: 1, .75
+                        orientation: 'horizontal'
+                        MyLabel:
+                            text: "     City:     "
+                            size_hint: .5, .75
+                        BoxLayout:
+                            padding: 20, 5, 0, 5
+                            TextInput:
+                                id: city
+                                write_tab: False
+                                multiline: False
+                                background_color: 0, 0, 0, 1
+                                foreground_color: 0, 1, 0, .5
+                                font_size: self.height * .55
+                                size_hint: 1.5, .75
+                BoxLayout:
+                    # Call Creation
+                    orientation: 'vertical'
+                    BoxLayout:
+                        size_hint: 1, .75
+                        orientation: 'horizontal'
+                        MyLabel:
+                            text: "   Zip Code:   "
+                            size_hint: .5, .75
+                        BoxLayout:
+                            padding: 20, 5, 0, 5
+                            TextInput:
+                                id: zip
+                                write_tab: False
+                                multiline: False
+                                background_color: 0, 0, 0, 1
+                                foreground_color: 0, 1, 0, .5
+                                font_size: self.height * .55
+                                size_hint: 1.5, .75
+
+                BoxLayout:
+                    # Call Creation
+                    orientation: 'vertical'
+                    BoxLayout:
+                        size_hint: 1, .75
+                        orientation: 'horizontal'
+                        MyLabel:
+                            text: "     Place:    "
+                            size_hint: .5, .75
+                        BoxLayout:
+                            padding: 20, 5, 0, 5
+                            TextInput:
+                                id: place
+                                write_tab: False
+                                multiline: False
+                                background_color: 0, 0, 0, 1
+                                foreground_color: 0, 1, 0, .5
+                                font_size: self.height * .55
+                                size_hint: 1.5, .75
+                BoxLayout:
+                    # Call Creation
+                    orientation: 'vertical'
+                    BoxLayout:
+                        size_hint: 1, .75
+                        orientation: 'horizontal'
+                        MyLabel:
+                            text: "     Phone:    "
+                            size_hint: .5, .75
+                        BoxLayout:
+                            padding: 20, 5, 0, 5
+                            TextInput:
+                                id: phone
+                                write_tab: False
+                                multiline: False
+                                background_color: 0, 0, 0, 1
+                                foreground_color: 0, 1, 0, .5
+                                font_size: self.height * .55
+                                size_hint: 1.5, .75
+                BoxLayout:
+                    # Call Creation
+                    orientation: 'vertical'
+                    BoxLayout:
+                        size_hint: 1, .75
+                        orientation: 'horizontal'
+                        MyLabel:
+                            text: "  Description: "
+                            size_hint: .5, .75
+                        BoxLayout
+                            padding: 20, 5, 0, 5
+                            TextInput:
+                                id:  description
+                                write_tab: True
+                                multiline: True
+                                background_color: 0, 0, 0, 1
+                                foreground_color: 0, 1, 0, .5
+                                font_size: self.height * .25
+                                size_hint: 1.5, 1
+            OfficerBox
+
+
+<OfficerBox>
+
+
+<DCADOfficerInfo>
+    BoxLayout:
+        height: root.height / 10
+        orientation: 'horizontal'
+        canvas.before:
+            Color:
+                rgba: 0, 0, 0, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        BoxLayout:
+            orientation: 'vertical'
+            MyLabel:
+                id: name
+                text: 'Name'
+            MyLabel:
+                id: badgeNum
+                text: 'Badge #'
+        Button:
+            id: 10-7
+            text: "10-7"
+        Button:
+            id: 10-8
+            text: "10-8"
+        Button:
+            id: send
+            text: "Send"
+
+
