@@ -43,9 +43,9 @@ Builder.load_file('splash.kv')
 
 # ----------------------------------------------------------------- #
 # CONNECT TO MYSQL DATABASE
-cnx = pymysql.connect(user='root',
-                      password='admin',
-                      host='174.102.218.3',
+cnx = pymysql.connect(user='vcad',
+                      password='vcad123',
+                      host='localhost',
                       database='vcad',
                       cursorclass=pymysql.cursors.DictCursor)
 
