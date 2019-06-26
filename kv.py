@@ -18,6 +18,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ObjectProperty
 from kivy.graphics import Rectangle
 from kivy.graphics import Color
+from kivy.uix.popup import Popup
 from kivy.graphics import Line
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.base import runTouchApp
@@ -26,7 +27,9 @@ from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.properties import StringProperty
 import time
+import datetime
 import math
+import pymysql
 import pymysql.cursors
 from kivy.uix.screenmanager import ScreenManager, Screen
 
@@ -40,6 +43,7 @@ Builder.load_file('DCAD.kv')
 Builder.load_file('Admin.kv')
 Builder.load_file('Login.kv')
 Builder.load_file('splash.kv')
+Builder.load_file('popup.kv')
 
 # ----------------------------------------------------------------- #
 # CONNECT TO MYSQL DATABASE
@@ -52,12 +56,80 @@ cnx = pymysql.connect(user='vcad',
 # ----------------------------------------------------------------- #
 # GLOBAL VARIABLES
 info = ['']
+error = "Empty Field: Please fill in all text boxes."
+
+# ----------------------------------------------------------------- #
+# FUNCTIONS
+
+def printCalls():
+    cursor = cnx.cursor()
+    cursor.execute("select * from calls;")
+    for row in cursor:
+        print(row)
+
+def getCallID():
+    print("getCallID")
+    cursor = cnx.cursor()  # Database cursor object
+    top = 0
+    #printCalls()
+    cursor.execute("select call_id from calls;")
+    if cursor.rowcount is 0:
+        print("row count 0")
+        return 1
+
+    for row in cursor:
+        print("Loop")
+        if row["call_id"] > top:
+            top = row["call_id"]
+    cursor.close()
+    return top + 1
+
+
+# ----------------------------------------------------------------- #
+# NON GUI CLASSES
+
+
+class dispatchCall():
+    # list [type, addr, city, zip, place, phone, desc, officer_ID]
+    def __init__(self, list):
+        self.call_id = getCallID()
+        self.callType = list[0]
+        self.street_address = list[1]
+        self.city = list[2]
+        self.zip = list[3]
+        self.place = list[4]
+        self.phone = list[5]
+        self.description = list[6]
+        self.time_start = datetime.datetime.now()
+        self.time_end = None
+        self.officer_id = list[7]
+        self.report = ""
+        self.active = True
+        print("created call")
+
+        statement = "INSERT INTO calls VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )"
+        print(statement)
+        cursor = cnx.cursor()
+        cursor.execute(statement, (self.call_id, self.callType, self.street_address, self.city, self.zip, self.place,
+                                   self.phone, self.description, self.time_start, self.time_end, self.officer_id,
+                                   self.report, self.active))
+        cursor.close()
+        cnx.commit()
+        print("finished")
+
 
 
 # ----------------------------------------------------------------- #
 # WIDGET CLASSES
 
 # NO LOGIC CLASSES (No code)
+
+class popupError(Popup):
+    def __init__(self, **kwargs):
+        super(popupError, self).__init__(**kwargs)
+
+    def changeText(self, text):
+        self.ids.errorMsg.text = text
 
 class CallWidget(BoxLayout):
 
@@ -309,6 +381,10 @@ class OfficerBox(BoxLayout):
         self.cur = DCADOfficerInfo()
         self.cur.padding = [0, self.height / 10, 5, 0]
         self.cur.width = self.width
+        self.send = Button()
+        self.cur.ids.layout.add_widget(self.send)
+        self.send.text = "Send"
+        self.send.bind(on_press=lambda x: screens[2].createCall())
         self.officers.append(self.cur)
 
     # nextPrev
@@ -334,6 +410,8 @@ class OfficerBox(BoxLayout):
             else:
                 return
         self.curPage.text = "Page: " + str(self.page)
+
+
 
 # ----------------------------------------------------------------- #
 # SCREENS
@@ -385,6 +463,26 @@ class DispatchScreen(Screen):
         info[0] = ''
         screens[2] = None
         scrn.switch_to(screens[1])
+
+    def createCall(self):
+        print("Creating Call")
+        # list [type, addr, city, zip, place, phone, desc, officer_ID]
+        callList = [self.ids.callType.text, self.ids.streetAddr.text, self.ids.city.text, self.ids.zip.text,
+                    self.ids.place.text, self.ids.phone.text, self.ids.description.text, 1001]
+        for item in callList:
+            if item is "" or 0:
+                scrn.error = "Empty Field: Please fill in all text boxes."
+                error = popupError()
+                error.open()
+                return
+        try:
+            testInt = int(callList[3])
+        except:
+            scrn.error = "Zip Code Format: Ensure Zip Code is a number."
+            error = popupError()
+            error.open()
+            return
+        call = dispatchCall(callList)
 
 
 # LoginScreen
@@ -486,9 +584,13 @@ class SplashScreen(Screen):
         super(SplashScreen, self).__init__(**kwargs)
 
 
+class ScreenManagement(ScreenManager):
+    error = ""
+
+
 # ----------------------------------------------------------------- #
 # SCREEN MANAGER BUILDING
-scrn = ScreenManager()                              # Screen Manager Object
+scrn = ScreenManagement()                           # Screen Manager Object
 screens = [SplashScreen(), LoginScreen(), None]     # Array of screens
 scrn.switch_to(screens[1])                          # Switch screens to login
 
