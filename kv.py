@@ -56,7 +56,6 @@ cnx = pymysql.connect(user='vcad',
 # ----------------------------------------------------------------- #
 # GLOBAL VARIABLES
 info = ['']
-error = "Empty Field: Please fill in all text boxes."
 
 # ----------------------------------------------------------------- #
 # FUNCTIONS
