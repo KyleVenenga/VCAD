@@ -27,11 +27,15 @@ from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.properties import StringProperty
 import time
+import asyncio
 import datetime
 import math
 import pymysql
 import pymysql.cursors
 from kivy.uix.screenmanager import ScreenManager, Screen
+import globals
+import officerCheck
+import classes
 
 # NOTES FOR .KV LANGUAGE
 # Padding, left, top, right, bottom
@@ -47,28 +51,40 @@ Builder.load_file('popup.kv')
 
 # ----------------------------------------------------------------- #
 # CONNECT TO MYSQL DATABASE
-cnx = pymysql.connect(user='vcad',
-                      password='vcad123',
-                      host='localhost',
-                      database='vcad',
-                      cursorclass=pymysql.cursors.DictCursor)
+def getCursor():
+    cnx = pymysql.connect(user='vcad',
+                          password='vcad123',
+                          host='localhost',
+                          database='vcad',
+                          cursorclass=pymysql.cursors.DictCursor)
+
+    cursor = cnx.cursor()
+    return cursor
+
+def commitDB():
+    cnx = pymysql.connect(user='vcad',
+                          password='vcad123',
+                          host='localhost',
+                          database='vcad',
+                          cursorclass=pymysql.cursors.DictCursor)
+    cnx.commit()
+
 
 # ----------------------------------------------------------------- #
 # GLOBAL VARIABLES
-info = ['']
 
 # ----------------------------------------------------------------- #
 # FUNCTIONS
 
 def printCalls():
-    cursor = cnx.cursor()
+    cursor = getCursor()
     cursor.execute("select * from calls;")
     for row in cursor:
         print(row)
 
 def getCallID():
     print("getCallID")
-    cursor = cnx.cursor()  # Database cursor object
+    cursor = getCursor()  # Database cursor object
     top = 0
     #printCalls()
     cursor.execute("select call_id from calls;")
@@ -82,6 +98,8 @@ def getCallID():
             top = row["call_id"]
     cursor.close()
     return top + 1
+
+
 
 
 # ----------------------------------------------------------------- #
@@ -108,12 +126,12 @@ class dispatchCall():
 
         statement = "INSERT INTO calls VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )"
         print(statement)
-        cursor = cnx.cursor()
+        cursor = getCursor()
         cursor.execute(statement, (self.call_id, self.callType, self.street_address, self.city, self.zip, self.place,
                                    self.phone, self.description, self.time_start, self.time_end, self.officer_id,
                                    self.report, self.active))
         cursor.close()
-        cnx.commit()
+        commitDB()
         print("finished")
 
 
@@ -344,8 +362,10 @@ class OfficerBox(BoxLayout):
         self.add_widget(self.officersBox)
 
         # FOR TESTING (adds officer widgets)
-        for x in range(15):
-            self.addOfficer()
+        #for x in range(15):
+            #self.addOfficer()
+
+        officerCheck.startProcess()
 
         # INITIALLY DISPLAYS THE RANGE FOR PAGE 1 ON BUILD
         self.displayRange()
@@ -360,31 +380,37 @@ class OfficerBox(BoxLayout):
         start = end - 10
         remain = len(self.officers) % 10
         self.pages = math.ceil(len(self.officers) / 10)
-
+        for row in self.officers:
+            print(row.ids.name)
         # If we have no remainder that means we display 10
-        if remain is 0 or self.page < self.pages:
-            for start in range(start, end):
-                self.officersBox.add_widget(self.officers[start])
-        else:
-            # If the current page is less than max pages, we can go forward
-            for start in range(start, (start + remain)):
-                self.officersBox.add_widget(self.officers[start])
-            # Add blank widgets to keep all of the widgets the same size
-            for x in range(10 - remain):
-                self.officersBox.add_widget(BoxLayout())
+        if len(self.officers) is not 0:
+            if remain is 0 or self.page < self.pages:
+                for start in range(start, end):
+                    self.officersBox.add_widget(self.officers[start])
+            else:
+                # If the current page is less than max pages, we can go forward
+                for start in range(start, (start + remain)):
+                    self.officersBox.add_widget(self.officers[start])
+                # Add blank widgets to keep all of the widgets the same size
+                for x in range(10 - remain):
+                    self.officersBox.add_widget(BoxLayout())
 
     # addOfficer
-    # adds a new cofficer widget to the array
+    # adds a new officer widget to the array
     # CURRENTLY NEEDS WORK THIS IS DEFAULT (Database work)
-    def addOfficer(self):
+    def addOfficer(self, officer):
         self.cur = DCADOfficerInfo()
+        self.cur.ids.name.text = officer.last
+        self.cur.ids.badgeNum.text = str(officer.id)
         self.cur.padding = [0, self.height / 10, 5, 0]
         self.cur.width = self.width
         self.send = Button()
         self.cur.ids.layout.add_widget(self.send)
         self.send.text = "Send"
-        self.send.bind(on_press=lambda x: screens[2].createCall())
+        self.send.bind(on_press=lambda x: globals.screens[2].createCall())
         self.officers.append(self.cur)
+        self.officersBox.clear_widgets()
+        self.displayRange()
 
     # nextPrev
     # Function called when the next/prev buttons are hit
@@ -410,6 +436,12 @@ class OfficerBox(BoxLayout):
                 return
         self.curPage.text = "Page: " + str(self.page)
 
+    def deleteOfficer(self, badge):
+        for officer in self.officers:
+            if officer.ids.badgeNum.text == str(badge):
+                self.officers.remove(officer)
+                self.officersBox.clear_widgets()
+                self.displayRange()
 
 
 # ----------------------------------------------------------------- #
@@ -423,7 +455,7 @@ class OfficerScreen(Screen):
     def __init__(self, **kwargs):
         super(OfficerScreen, self).__init__(**kwargs)
         self.ids.logout.bind(on_press=lambda x: self.logout())  # Bind logout button to logout
-        self.ids.officerName.text = info[0]                     # Set the name to their name
+        self.ids.officerName.text = globals.info[0]                     # Set the name to their name
 
     # press107
     # When 10-7 button is pressed, run this, changes state of other button, and changes label
@@ -441,9 +473,9 @@ class OfficerScreen(Screen):
     # Logs out of the user account, switches screen, changes info name back to nothing,
     #  and removes screen to save memory
     def logout(self):
-        info[0] = ''
-        scrn.switch_to(screens[1])
-        screens[2] = None
+        globals.info[0] = ''
+        scrn.switch_to(globals.screens[1])
+        globals.screens[2] = None
 
 
 # DispatchScreen
@@ -452,16 +484,21 @@ class OfficerScreen(Screen):
 class DispatchScreen(Screen):
     def __init__(self, **kwargs):
         super(DispatchScreen, self).__init__(**kwargs)
-        self.ids.logout.bind(on_press=lambda x: self.logout(scrn, screens))  # Bind logout button to logout
-        self.ids.dispatcherName.text = info[0]                               # Set the name to users name
+        self.ids.logout.bind(on_press=lambda x: self.logout(scrn, globals.screens))  # Bind logout button to logout
+        self.ids.dispatcherName.text = globals.info[0]                               # Set the name to users name
+
 
     # logout
     # Logs out of the user account, switches screen, changes info name back to nothing,
     #  and removes screen to save memory
     def logout(self, scrn, screens):
-        info[0] = ''
+        globals.running = False
+        globals.info[0] = ''
         screens[2] = None
         scrn.switch_to(screens[1])
+        globals.onlineOfficers = []
+
+
 
     def createCall(self):
         print("Creating Call")
@@ -511,7 +548,7 @@ class LoginScreen(Screen):
         # VARIABLES
         password = str(self.ids.password.text)  # Password the user entered
         username = str(self.ids.username.text)  # Username the user entered
-        cursor = cnx.cursor()                   # Database cursor object
+        cursor = getCursor()                   # Database cursor object
 
         # LOGIC
         cursor.execute("select * from officer;")    # Execute SQL code to gather officer info
@@ -521,7 +558,7 @@ class LoginScreen(Screen):
             if row["username"] == str(username):
                 # If Password matches usernames password
                 if row["pass"] == str(password):
-                    info[0] = row["last_name"]  # Set global last name to their last name
+                    globals.info[0] = row["last_name"]  # Set global last name to their last name
 
                     # CHECK WHAT USER TYPE THEY ARE AND LAUNCH THAT SCREEN
                     #   1. Switch screen to splash screen (Currently not working?)
@@ -532,24 +569,25 @@ class LoginScreen(Screen):
 
                     # If they are a dispatcher
                     if row["dispatch"] == 1:
-                        scrn.switch_to(screens[0])
-                        screens[2] = DispatchScreen()
+                        globals.running = True
+                        scrn.switch_to(globals.screens[0])
+                        globals.screens[2] = DispatchScreen()
                         self.clear()
-                        scrn.switch_to(screens[2])
+                        scrn.switch_to(globals.screens[2])
                         return
                     # If they are an admin
                     if row["username"] == 'admin':
-                        scrn.switch_to(screens[0])
-                        screens[2] = AdminScreen()
+                        scrn.switch_to(globals.screens[0])
+                        globals.screens[2] = AdminScreen()
                         self.clear()
-                        scrn.switch_to(screens[2])
+                        scrn.switch_to(globals.screens[2])
                         return
                     # Otherwise they are an officer
                     else:
-                        scrn.switch_to(screens[0])
-                        screens[2] = OfficerScreen()
+                        scrn.switch_to(globals.screens[0])
+                        globals.screens[2] = OfficerScreen()
                         self.clear()
-                        scrn.switch_to(screens[2])
+                        scrn.switch_to(globals.screens[2])
                         return
                 # If password doesn't match the usernames password
                 else:
@@ -571,9 +609,9 @@ class AdminScreen(Screen):
     # Logs out of the user account, switches screen, changes info name back to nothing,
     #  and removes screen to save memory
     def logout(self, scrn):
-        info[0] = ''
-        screens[2] = None
-        scrn.switch_to(screens[1])
+        globals.info[0] = ''
+        globals.screens[2] = None
+        scrn.switch_to(globals.screens[1])
 
 
 # SplashScreen
@@ -585,13 +623,14 @@ class SplashScreen(Screen):
 
 class ScreenManagement(ScreenManager):
     error = ""
+    running = True
 
 
 # ----------------------------------------------------------------- #
 # SCREEN MANAGER BUILDING
 scrn = ScreenManagement()                           # Screen Manager Object
-screens = [SplashScreen(), LoginScreen(), None]     # Array of screens
-scrn.switch_to(screens[1])                          # Switch screens to login
+globals.screens = [SplashScreen(), LoginScreen(), None]     # Array of screens
+scrn.switch_to(globals.screens[1])                          # Switch screens to login
 
 # ----------------------------------------------------------------- #
 # APPLICATION
@@ -626,4 +665,6 @@ class LoginApp(App):
 
 if __name__ == '__main__':
     LoginApp().run()
+
+
 
