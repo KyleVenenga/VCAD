@@ -6,3 +6,5 @@ class officer():
         self.active = list[2]
         self.online = list[3]
 
+    def print(self):
+        print("ID: ", self.id, "\nLast: ", self.last, "\nActive: ", self.active, "\nOnline: ", self.online)

@@ -1,6 +1,10 @@
 import classes
 
+appRunning = True
 info = ['']
 onlineOfficers = []
-running = False
+dispRunning = False
 screens = []
+addOff = False
+curOff = ''
+blah = [1, "last", True, True]

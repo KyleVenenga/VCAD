@@ -36,6 +36,8 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 import globals
 import officerCheck
 import classes
+import sys
+from threading import Thread
 
 # NOTES FOR .KV LANGUAGE
 # Padding, left, top, right, bottom
@@ -51,22 +53,22 @@ Builder.load_file('popup.kv')
 
 # ----------------------------------------------------------------- #
 # CONNECT TO MYSQL DATABASE
-def getCursor():
+def getCNX():
     cnx = pymysql.connect(user='vcad',
                           password='vcad123',
                           host='localhost',
                           database='vcad',
                           cursorclass=pymysql.cursors.DictCursor)
+    return cnx
 
+
+def getCursor():
+    cnx = getCNX()
     cursor = cnx.cursor()
     return cursor
 
 def commitDB():
-    cnx = pymysql.connect(user='vcad',
-                          password='vcad123',
-                          host='localhost',
-                          database='vcad',
-                          cursorclass=pymysql.cursors.DictCursor)
+    cnx = getCNX()
     cnx.commit()
 
 
@@ -98,7 +100,6 @@ def getCallID():
             top = row["call_id"]
     cursor.close()
     return top + 1
-
 
 
 
@@ -321,6 +322,8 @@ class OfficerBox(BoxLayout):
         self.officers = []                                  # Array of officer widgets
         self.page = 1                                       # Current page number for calls
         self.pages = math.ceil(len(self.officers) / 10)     # Max number of pages
+        self.allOfficers = []
+
 
         # THIS SECTION ADDS A LABEL FOR PREVIOUS OFFICERS
         self.orientation = "vertical"
@@ -360,28 +363,45 @@ class OfficerBox(BoxLayout):
         self.officersBox = BoxLayout()
         self.officersBox.orientation = 'vertical'
         self.add_widget(self.officersBox)
-
+        #Thread(target=officerCheck.startProcess).start()
+        self.buildArray()
         # FOR TESTING (adds officer widgets)
-        #for x in range(15):
-            #self.addOfficer()
+        globals.dispRunning = True
+        Thread(target=officerCheck.checkOnline).start()
 
-        officerCheck.startProcess()
 
-        # INITIALLY DISPLAYS THE RANGE FOR PAGE 1 ON BUILD
-        self.displayRange()
+    def buildArray(self):
+        cursor = getCursor()
+        cursor.execute("select * from officer where dispatch = FALSE and officer_id > 1")
+        for row in cursor:
+            self.cur = DCADOfficerInfo()
+            self.cur.ids.name.text = str(row["last_name"])
+            self.cur.ids.badgeNum.text = str(row["officer_id"])
+            self.cur.padding = [0, self.height / 10, 5, 0]
+            self.cur.width = self.width
+            self.send = Button()
+            self.cur.ids.layout.add_widget(self.send)
+            self.send.text = "Send"
+            self.send.bind(on_press=lambda x: globals.screens[2].createCall())
+            self.allOfficers.append(self.cur)
+
+    def putOfficerIn(self, id):
+        for cur in self.allOfficers:
+            if str(id) == cur.ids.badgeNum.text:
+                self.officers.append(cur)
+                self.displayRange()
 
     # displayRange
     # Displays the range of officers.
     # Adds all the officers for the current page of the officerBox
     # Displays officers within the range of the current page
     def displayRange(self):
+        self.officersBox.clear_widgets()
         # VARIABLES
         end = self.page * 10
         start = end - 10
         remain = len(self.officers) % 10
         self.pages = math.ceil(len(self.officers) / 10)
-        for row in self.officers:
-            print(row.ids.name)
         # If we have no remainder that means we display 10
         if len(self.officers) is not 0:
             if remain is 0 or self.page < self.pages:
@@ -399,6 +419,7 @@ class OfficerBox(BoxLayout):
     # adds a new officer widget to the array
     # CURRENTLY NEEDS WORK THIS IS DEFAULT (Database work)
     def addOfficer(self, officer):
+        print("Adding Officer")
         self.cur = DCADOfficerInfo()
         self.cur.ids.name.text = officer.last
         self.cur.ids.badgeNum.text = str(officer.id)
@@ -409,7 +430,6 @@ class OfficerBox(BoxLayout):
         self.send.text = "Send"
         self.send.bind(on_press=lambda x: globals.screens[2].createCall())
         self.officers.append(self.cur)
-        self.officersBox.clear_widgets()
         self.displayRange()
 
     # nextPrev
@@ -440,7 +460,6 @@ class OfficerBox(BoxLayout):
         for officer in self.officers:
             if officer.ids.badgeNum.text == str(badge):
                 self.officers.remove(officer)
-                self.officersBox.clear_widgets()
                 self.displayRange()
 
 
@@ -665,6 +684,9 @@ class LoginApp(App):
 
 if __name__ == '__main__':
     LoginApp().run()
+    globals.appRunning = False
+    sys.stdout.flush()
+    sys.stdout.close()
 
 
 
