@@ -193,12 +193,15 @@
             MyLabel:
                 id: badgeNum
                 text: 'Badge #'
-        Button:
-            id: 10-7
+        ToggleButton:
+            id: tenSeven
             text: "10-7"
-        Button:
-            id: 10-8
+            on_state: root.press107()
+        ToggleButton:
+            id: tenEight
             text: "10-8"
+            state: 'down'
+            on_state: root.press108()
 
 
 

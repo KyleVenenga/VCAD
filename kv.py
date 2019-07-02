@@ -174,7 +174,34 @@ class VBoxWidget(Widget):
 class DCADOfficerInfo(BoxLayout):
     def __init__(self, **kwargs):
         super(DCADOfficerInfo, self).__init__(**kwargs)
+        self.state = False
+    # press107
+    # When 10-7 button is pressed, run this, changes state of other button, and changes label
+    def press107(self):
+        if self.ids.tenSeven.state != "down":
+            self.state = True
+            self.ids.tenEight.state = "down"
+        else:
+            self.ids.tenEight.state = "normal"
+            self.state = False
+        print(self.state)
 
+    # press108
+    # When 10-8 button is pressed, run this, changes state of other button, and changes label
+    def press108(self):
+        if self.ids.tenEight.state != "down":
+            self.state = False
+            self.ids.tenSeven.state = "down"
+        else:
+            self.ids.tenSeven.state = "normal"
+            self.state = True
+        print(self.state)
+
+
+    def sendCall(self):
+        self.state = False
+        self.ids.tenSeven.state = "down"
+        self.ids.tenEight.state = "normal"
 
 # ----------------------------------------------------------------- #
 # LOGIC CODED WIDGETS
@@ -459,6 +486,15 @@ class OfficerBox(BoxLayout):
                 self.officers.remove(officer)
                 self.displayRange()
 
+    def getOfficer(self, id):
+        for officer in self.officers:
+            if officer.ids.badgeNum.text == str(id):
+                return officer
+
+    def updateAvailability(self, id):
+        cnx = getCNX()
+        cursor = cnx.cursor()
+        cursor.execute("select from officer where officer")
 
 # ----------------------------------------------------------------- #
 # SCREENS
@@ -539,6 +575,13 @@ class DispatchScreen(Screen):
             testInt = int(callList[3])
         except:
             scrn.error = "Zip Code Format: Ensure Zip Code is a number."
+            error = popupError()
+            error.open()
+            return
+        officer = self.ids.ob.getOfficer(id)
+        print(officer.ids.tenSeven.state)
+        if officer.ids.tenSeven.state == "down":
+            scrn.error = "Officer is not available."
             error = popupError()
             error.open()
             return
