@@ -7,14 +7,12 @@ import classes
 
 def startProcess():
     proc = Thread(target=checkOnline).start()
-    
+
 
 def checkOnline():
     time.sleep(2)
     print("starting thread")
     while globals.dispRunning is True:
-
-
         cursor = getCursor()
         cursor.execute("select * from officer where  on_duty = True")
         checkOffline()
@@ -31,7 +29,6 @@ def checkOnline():
                     if row["officer_id"] == int(off.id):
                         off.active = row["status"]
                         create = False
-                print(create)
                 if create is True:
                     cur = [int(row["officer_id"]), str(row["last_name"]), bool(row["status"]), bool(row["on_duty"])]
                     curOff = classes.officer(cur)
@@ -57,12 +54,9 @@ def getCursor():
 def checkOffline():
     cursor = getCursor()
     for off in globals.onlineOfficers:
-        #print(off.id, off.last)
         cursor.execute("select on_duty from officer where officer_id = %s", off.id)
         for row in cursor:
-            #print(row['on_duty'])
             if row['on_duty'] is 0:
                 globals.onlineOfficers.remove(off)
                 globals.screens[2].ids.ob.deleteOfficer(off.id)
-                #print("dddddddddddddddddddddddddddddddddddddd")
 

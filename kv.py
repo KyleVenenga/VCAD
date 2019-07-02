@@ -67,10 +67,6 @@ def getCursor():
     cursor = cnx.cursor()
     return cursor
 
-def commitDB():
-    cnx = getCNX()
-    cnx.commit()
-
 
 # ----------------------------------------------------------------- #
 # GLOBAL VARIABLES
@@ -127,12 +123,13 @@ class dispatchCall():
 
         statement = "INSERT INTO calls VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )"
         print(statement)
-        cursor = getCursor()
+        cnx = getCNX()
+        cursor = cnx.cursor()
         cursor.execute(statement, (self.call_id, self.callType, self.street_address, self.city, self.zip, self.place,
                                    self.phone, self.description, self.time_start, self.time_end, self.officer_id,
                                    self.report, self.active))
+        cnx.commit()
         cursor.close()
-        commitDB()
         print("finished")
 
 
@@ -382,7 +379,7 @@ class OfficerBox(BoxLayout):
             self.send = Button()
             self.cur.ids.layout.add_widget(self.send)
             self.send.text = "Send"
-            self.send.bind(on_press=lambda x: globals.screens[2].createCall())
+            self.send.bind(on_press=lambda x: globals.screens[2].createCall(row["officer_id"]))
             self.allOfficers.append(self.cur)
 
     def putOfficerIn(self, id):
@@ -511,19 +508,27 @@ class DispatchScreen(Screen):
     # Logs out of the user account, switches screen, changes info name back to nothing,
     #  and removes screen to save memory
     def logout(self, scrn, screens):
-        globals.running = False
+        globals.dispRunning = False
         globals.info[0] = ''
         screens[2] = None
         scrn.switch_to(screens[1])
         globals.onlineOfficers = []
 
+    def clearFields(self):
+        self.ids.callType.text = ""
+        self.ids.streetAddr.text = ""
+        self.ids.city.text = ""
+        self.ids.zip.text = ""
+        self.ids.place.text = ""
+        self.ids.phone.text = ""
+        self.ids.description.text = ""
 
 
-    def createCall(self):
+    def createCall(self, id):
         print("Creating Call")
         # list [type, addr, city, zip, place, phone, desc, officer_ID]
         callList = [self.ids.callType.text, self.ids.streetAddr.text, self.ids.city.text, self.ids.zip.text,
-                    self.ids.place.text, self.ids.phone.text, self.ids.description.text, 1001]
+                    self.ids.place.text, self.ids.phone.text, self.ids.description.text, id]
         for item in callList:
             if item is "" or 0:
                 scrn.error = "Empty Field: Please fill in all text boxes."
@@ -538,6 +543,7 @@ class DispatchScreen(Screen):
             error.open()
             return
         call = dispatchCall(callList)
+        self.clearFields()
 
 
 # LoginScreen
