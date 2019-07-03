@@ -17,6 +17,7 @@ from kivy.properties import ObjectProperty
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ObjectProperty
 from kivy.graphics import Rectangle
+from kivy.graphics import RoundedRectangle
 from kivy.graphics import Color
 from kivy.uix.popup import Popup
 from kivy.graphics import Line
@@ -50,6 +51,7 @@ Builder.load_file('Admin.kv')
 Builder.load_file('Login.kv')
 Builder.load_file('splash.kv')
 Builder.load_file('popup.kv')
+Builder.load_file('RoundedButton.kv')
 
 # ----------------------------------------------------------------- #
 # CONNECT TO MYSQL DATABASE
@@ -98,6 +100,13 @@ def getCallID():
     return top + 1
 
 
+def updateAvailability(id, avail):
+    cnx = getCNX()
+    cursor = cnx.cursor()
+    cursor.execute("update officer set status = %s where officer_id = %s", (avail, id))
+    cnx.commit()
+    cnx.close()
+    cursor.close()
 
 # ----------------------------------------------------------------- #
 # NON GUI CLASSES
@@ -138,6 +147,10 @@ class dispatchCall():
 # WIDGET CLASSES
 
 # NO LOGIC CLASSES (No code)
+
+class RoundedButton(Widget):
+    def __init__(self, **kwargs):
+        super(RoundedButton, self).__init__(**kwargs)
 
 class popupError(Popup):
     def __init__(self, **kwargs):
@@ -185,6 +198,7 @@ class DCADOfficerInfo(BoxLayout):
             self.ids.tenEight.state = "normal"
             self.state = False
         print(self.state)
+        updateAvailability(int(self.ids.badgeNum.text), self.state)
 
     # press108
     # When 10-8 button is pressed, run this, changes state of other button, and changes label
@@ -196,12 +210,23 @@ class DCADOfficerInfo(BoxLayout):
             self.ids.tenSeven.state = "normal"
             self.state = True
         print(self.state)
+        updateAvailability(int(self.ids.badgeNum.text), self.state)
 
+    def changeStatusButton(self, status):
+        self.state = status
+        if status == True:
+            self.ids.tenSeven.state = "normal"
+            self.ids.tenEight.state = "down"
+        else:
+            self.ids.tenSeven.state = "down"
+            self.ids.tenEight.state = "normal"
+        updateAvailability(int(self.ids.badgeNum.text), self.state)
 
     def sendCall(self):
         self.state = False
         self.ids.tenSeven.state = "down"
         self.ids.tenEight.state = "normal"
+        updateAvailability(int(self.ids.badgeNum.text), self.state)
 
 # ----------------------------------------------------------------- #
 # LOGIC CODED WIDGETS
@@ -366,17 +391,20 @@ class OfficerBox(BoxLayout):
         self.butBox = GridLayout()
         self.butBox.orientation = 'horizontal'
         self.butBox.size_hint = (1, .083)
-        self.butBox.padding = [0, 5, 5, 0]
+        self.butBox.padding = [0, self.height * .05, 5, self.height * .05]
         self.butBox.rows = 1
-        self.prev = Button()
-        self.next = Button()
+        self.prev = RoundedButton()
+        self.next = RoundedButton()
         self.curPage = MyLabel()
-        self.prev.text = "Prev"
-        self.next.text = "Next"
+        self.curPage.padding = [self.width * .25, 0, self.width * .25, 0]
+        self.prev.ids.but.text = "Prev"
+        self.next.ids.but.text = "Next"
         self.curPage.text = "Page: " + str(self.page)
+        self.butBox.add_widget(BoxLayout(size_hint=(.5, 1)))
         self.butBox.add_widget(self.prev)
         self.butBox.add_widget(self.curPage)
         self.butBox.add_widget(self.next)
+        self.butBox.add_widget(BoxLayout(size_hint=(.5, 1)))
         # Bind buttons to functions
         self.next.bind(on_press=lambda x: self.nextPrev(self.next.text))
         self.prev.bind(on_press=lambda x: self.nextPrev(self.prev.text))
@@ -403,10 +431,7 @@ class OfficerBox(BoxLayout):
             self.cur.ids.badgeNum.text = str(row["officer_id"])
             self.cur.padding = [0, self.height / 10, 5, 0]
             self.cur.width = self.width
-            self.send = Button()
-            self.cur.ids.layout.add_widget(self.send)
-            self.send.text = "Send"
-            self.send.bind(on_press=lambda x: globals.screens[2].createCall(row["officer_id"]))
+            self.cur.ids.send.bind(on_press=lambda x: globals.screens[2].createCall(row["officer_id"]))
             self.allOfficers.append(self.cur)
 
     def putOfficerIn(self, id):
@@ -449,10 +474,7 @@ class OfficerBox(BoxLayout):
         self.cur.ids.badgeNum.text = str(officer.id)
         self.cur.padding = [0, self.height / 10, 5, 0]
         self.cur.width = self.width
-        self.send = Button()
-        self.cur.ids.layout.add_widget(self.send)
-        self.send.text = "Send"
-        self.send.bind(on_press=lambda x: globals.screens[2].createCall())
+        self.ids.send.bind(on_press=lambda x: globals.screens[2].createCall())
         self.officers.append(self.cur)
         self.displayRange()
 
@@ -491,10 +513,8 @@ class OfficerBox(BoxLayout):
             if officer.ids.badgeNum.text == str(id):
                 return officer
 
-    def updateAvailability(self, id):
-        cnx = getCNX()
-        cursor = cnx.cursor()
-        cursor.execute("select from officer where officer")
+
+
 
 # ----------------------------------------------------------------- #
 # SCREENS
@@ -586,6 +606,7 @@ class DispatchScreen(Screen):
             error.open()
             return
         call = dispatchCall(callList)
+        self.ids.ob.getOfficer(id).sendCall()
         self.clearFields()
 
 

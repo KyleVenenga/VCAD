@@ -15,9 +15,20 @@
                 id: dispatcherName
             BoxLayout:
             BoxLayout:
-            Button:
-                text: 'Logout'
-                id: logout
+            BoxLayout:
+                size_hint: .75, 1
+                Button:
+                    canvas.before:
+                        Color:
+                            rgba: (0,0,.5,.95) if self.state=='normal' else (.3, 0.3, 0.8, .75)  # visual feedback of press
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [self.height * .5]
+                    background_color: 0,0,0,0
+                    id: logout
+                    font_size: .55 * self.height
+                    text: 'Logout'
         BoxLayout:
             # Under banner stuff
             orientation: 'horizontal'
@@ -30,11 +41,17 @@
             GridLayout:
                 id: call
                 padding: 8
-                rows: 7
+                rows: 8
                 cols: 1
                 # Call Creation
                 size_hint: 1, 1
                 orientation: 'vertical'
+                BoxLayout:
+                    size_hint: 1, .4
+                    padding: 0, 5, 0, 0
+                    MyLabel:
+                        size_hint: 1, 1
+                        text: 'Create Call'
                 BoxLayout:
                     size_hint: 1, .75
                     orientation: 'horizontal'
@@ -171,7 +188,9 @@
                 id: ob
 
 
+
 <OfficerBox>
+    padding: 15, 0, 5, 0
 
 
 <DCADOfficerInfo>
@@ -181,11 +200,13 @@
         orientation: 'horizontal'
         canvas.before:
             Color:
-                rgba: 0, 0, 0, 1
-            Rectangle:
+                rgba: 0, 0, 0, .4
+            RoundedRectangle:
+                radius: [self.height * .5]
                 pos: self.pos
                 size: self.size
         BoxLayout:
+            padding: 2, 3, 3, 2
             orientation: 'vertical'
             MyLabel:
                 id: name
@@ -193,16 +214,52 @@
             MyLabel:
                 id: badgeNum
                 text: 'Badge #'
-        ToggleButton:
-            id: tenSeven
-            text: "10-7"
-            on_state: root.press107()
-        ToggleButton:
-            id: tenEight
-            text: "10-8"
-            state: 'down'
-            on_state: root.press108()
-
-
+        BoxLayout:
+            padding: 5, 5, 5, 5
+            ToggleButton:
+                canvas.before:
+                    Color:
+                        rgba: (1,0,0,1) if self.state=='normal' else (.4, 0.1, 0.2, .75)  # visual feedback of press
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [self.height * .5]
+                background_color: 0,0,0,0
+                id: tenSeven
+                font_size: .55 * self.height
+                text: "10-7"
+                background_down: 'images/tenSevenActive.png'
+                background_normal: 'images/tenSevenIdle.png'
+                on_state: root.press107()
+        BoxLayout:
+            padding: 5, 5, 5, 5
+            ToggleButton:
+                background_color: 0,0,0,0
+                id: tenEight
+                font_size: .55 * self.height
+                state: 'down'
+                text: '10-8'
+                canvas.before:
+                    Color:
+                        rgba:(.1, .75, 0.1, 1) if self.state=='normal' else (0, .25, 0, .75)   # visual feedback of press
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [self.height * .5]
+                on_state: root.press108()
+        BoxLayout:
+            padding: 5, 5, 5, 5
+            Button:
+                canvas.before:
+                    Color:
+                        rgba: (.6,.6,.6,75) if self.state=='normal' else (0,.7,.7,1)  # visual feedback of press
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [self.height * .5]
+                background_color: 0,0,0,0
+                id: send
+                font_size: .55 * self.height
+                text: 'Send'
 
 

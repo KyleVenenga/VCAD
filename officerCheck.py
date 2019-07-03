@@ -28,6 +28,7 @@ def checkOnline():
                 for off in globals.onlineOfficers:
                     if row["officer_id"] == int(off.id):
                         off.active = row["status"]
+                        globals.screens[2].ids.ob.getOfficer(row["officer_id"]).changeStatusButton(row["status"])
                         create = False
                 if create is True:
                     cur = [int(row["officer_id"]), str(row["last_name"]), bool(row["status"]), bool(row["on_duty"])]
