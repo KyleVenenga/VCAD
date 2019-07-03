@@ -230,7 +230,7 @@
                 text: "10-7"
                 background_down: 'images/tenSevenActive.png'
                 background_normal: 'images/tenSevenIdle.png'
-                on_state: root.press107()
+                on_press: root.press107()
         BoxLayout:
             padding: 5, 5, 5, 5
             ToggleButton:
@@ -246,7 +246,7 @@
                         pos: self.pos
                         size: self.size
                         radius: [self.height * .5]
-                on_state: root.press108()
+                on_press: root.press108()
         BoxLayout:
             padding: 5, 5, 5, 5
             Button:
@@ -261,5 +261,6 @@
                 id: send
                 font_size: .55 * self.height
                 text: 'Send'
+                on_press: root.sendBut(int(badgeNum.text))
 
 

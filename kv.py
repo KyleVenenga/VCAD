@@ -192,11 +192,11 @@ class DCADOfficerInfo(BoxLayout):
     # When 10-7 button is pressed, run this, changes state of other button, and changes label
     def press107(self):
         if self.ids.tenSeven.state != "down":
-            self.state = True
+            self.state = False
             self.ids.tenEight.state = "down"
         else:
             self.ids.tenEight.state = "normal"
-            self.state = False
+            self.state = True
         print(self.state)
         updateAvailability(int(self.ids.badgeNum.text), self.state)
 
@@ -204,17 +204,17 @@ class DCADOfficerInfo(BoxLayout):
     # When 10-8 button is pressed, run this, changes state of other button, and changes label
     def press108(self):
         if self.ids.tenEight.state != "down":
-            self.state = False
+            self.state = True
             self.ids.tenSeven.state = "down"
         else:
             self.ids.tenSeven.state = "normal"
-            self.state = True
+            self.state = False
         print(self.state)
         updateAvailability(int(self.ids.badgeNum.text), self.state)
 
     def changeStatusButton(self, status):
         self.state = status
-        if status == True:
+        if status == False:
             self.ids.tenSeven.state = "normal"
             self.ids.tenEight.state = "down"
         else:
@@ -224,9 +224,11 @@ class DCADOfficerInfo(BoxLayout):
 
     def sendCall(self):
         self.state = False
-        self.ids.tenSeven.state = "down"
-        self.ids.tenEight.state = "normal"
+        self.changeStatusButton(False)
         updateAvailability(int(self.ids.badgeNum.text), self.state)
+
+    def sendBut(self, id):
+        globals.screens[2].createCall(id)
 
 # ----------------------------------------------------------------- #
 # LOGIC CODED WIDGETS
@@ -417,6 +419,7 @@ class OfficerBox(BoxLayout):
         self.add_widget(self.officersBox)
         #Thread(target=officerCheck.startProcess).start()
         self.buildArray()
+
         # FOR TESTING (adds officer widgets)
         globals.dispRunning = True
         Thread(target=officerCheck.checkOnline).start()
@@ -426,13 +429,15 @@ class OfficerBox(BoxLayout):
         cursor = getCursor()
         cursor.execute("select * from officer where dispatch = FALSE and officer_id > 1")
         for row in cursor:
-            self.cur = DCADOfficerInfo()
-            self.cur.ids.name.text = str(row["last_name"])
-            self.cur.ids.badgeNum.text = str(row["officer_id"])
-            self.cur.padding = [0, self.height / 10, 5, 0]
-            self.cur.width = self.width
-            self.cur.ids.send.bind(on_press=lambda x: globals.screens[2].createCall(row["officer_id"]))
-            self.allOfficers.append(self.cur)
+            cur = DCADOfficerInfo()
+            cur.ids.name.text = str(row["last_name"])
+            cur.ids.badgeNum.text = str(row["officer_id"])
+            cur.padding = [0, self.height / 10, 5, 0]
+            cur.width = self.width
+            cur.oid = int(row["officer_id"])
+            print("ID: ", cur.oid)
+            self.allOfficers.append(cur)
+        cursor.close()
 
     def putOfficerIn(self, id):
         for cur in self.allOfficers:
@@ -599,12 +604,14 @@ class DispatchScreen(Screen):
             error.open()
             return
         officer = self.ids.ob.getOfficer(id)
-        print(officer.ids.tenSeven.state)
-        if officer.ids.tenSeven.state == "down":
-            scrn.error = "Officer is not available."
-            error = popupError()
-            error.open()
-            return
+        cursor = getCursor()
+        cursor.execute("select status from officer where officer_id = %s", id)
+        for row in cursor:
+            if row["status"] == 0:
+                scrn.error = "Officer is not available."
+                error = popupError()
+                error.open()
+                return
         call = dispatchCall(callList)
         self.ids.ob.getOfficer(id).sendCall()
         self.clearFields()
