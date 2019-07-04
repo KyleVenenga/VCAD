@@ -45,13 +45,13 @@ from threading import Thread
 
 # ----------------------------------------------------------------- #
 # IMPORT .kv FILES
-Builder.load_file('VCAD.kv')
-Builder.load_file('DCAD.kv')
-Builder.load_file('Admin.kv')
-Builder.load_file('Login.kv')
-Builder.load_file('splash.kv')
-Builder.load_file('popup.kv')
-Builder.load_file('RoundedButton.kv')
+Builder.load_file('Kivy Files/VCAD.kv')
+Builder.load_file('Kivy Files/DCAD.kv')
+Builder.load_file('Kivy Files/Admin.kv')
+Builder.load_file('Kivy Files/Login.kv')
+Builder.load_file('Kivy Files/splash.kv')
+Builder.load_file('Kivy Files/popup.kv')
+Builder.load_file('Kivy Files/RoundedButton.kv')
 
 # ----------------------------------------------------------------- #
 # CONNECT TO MYSQL DATABASE
@@ -278,18 +278,18 @@ class CallsBox(BoxLayout):
         self.butBox.size_hint = (1, .083)
         self.butBox.padding = [0, 5, 5, 0]
         self.butBox.rows = 1
-        self.prev = Button()
-        self.next = Button()
+        self.prev = RoundedButton()
+        self.next = RoundedButton()
         self.curPage = MyLabel()
-        self.prev.text = "Prev"
-        self.next.text = "Next"
+        self.prev.ids.but.text = "Prev"
+        self.next.ids.but.text = "Next"
         self.curPage.text = "Page: " + str(self.page)
         self.butBox.add_widget(self.prev)
         self.butBox.add_widget(self.curPage)
         self.butBox.add_widget(self.next)
         # Bind buttons to functions
-        self.next.bind(on_press=lambda x:self.nextPrev(self.next.text))
-        self.prev.bind(on_press=lambda x: self.nextPrev(self.prev.text))
+        self.next.ids.but.bind(on_press=lambda x:self.nextPrev(self.next.ids.but.text))
+        self.prev.ids.but.bind(on_press=lambda x: self.nextPrev(self.prev.ids.but.text))
         self.add_widget(self.butBox)
 
         # ADD BOX FOR PREVIOUS CALLS
@@ -408,8 +408,8 @@ class OfficerBox(BoxLayout):
         self.butBox.add_widget(self.next)
         self.butBox.add_widget(BoxLayout(size_hint=(.5, 1)))
         # Bind buttons to functions
-        self.next.bind(on_press=lambda x: self.nextPrev(self.next.text))
-        self.prev.bind(on_press=lambda x: self.nextPrev(self.prev.text))
+        self.next.ids.but.bind(on_press=lambda x: self.nextPrev(self.next.ids.but.text))
+        self.prev.ids.but.bind(on_press=lambda x: self.nextPrev(self.prev.ids.but.text))
         self.add_widget(self.butBox)
         self.orientation = 'vertical'
 
