@@ -1,16 +1,11 @@
-from threading import Thread
 import globals
 import pymysql.cursors
 import time
 import classes
 
 
-def startProcess():
-    proc = Thread(target=checkOnline).start()
-
-
 def checkOnline():
-    time.sleep(2)
+    time.sleep(.25)
     print("starting thread")
     while globals.dispRunning is True:
         cursor = getCursor()
@@ -37,7 +32,7 @@ def checkOnline():
                     globals.screens[2].ids.ob.putOfficerIn(curOff.id)
                     globals.onlineOfficers.append(curOff)
         cursor.close()
-        time.sleep(1)
+        time.sleep(.25)
     print("stopping thread")
 
 

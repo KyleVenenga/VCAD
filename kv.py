@@ -5,6 +5,7 @@
 
 import kivy
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.properties import ObjectProperty
 from kivy.uix.label import Label
@@ -36,6 +37,7 @@ import pymysql.cursors
 from kivy.uix.screenmanager import ScreenManager, Screen
 import globals
 import officerCheck
+import callChecker
 import classes
 import sys
 from threading import Thread
@@ -69,9 +71,6 @@ def getCursor():
     cursor = cnx.cursor()
     return cursor
 
-
-# ----------------------------------------------------------------- #
-# GLOBAL VARIABLES
 
 # ----------------------------------------------------------------- #
 # FUNCTIONS
@@ -303,6 +302,9 @@ class CallsBox(BoxLayout):
 
         # DISPLAYS ALL CALLS
         self.displayRange()
+        globals.offRunning = True
+        print(globals.screens[2], "Blah")
+        #Thread(target=callChecker.checkCall(globals.info[1])).start()
 
     # displayRange
     # Displays the range of calls.
@@ -417,11 +419,11 @@ class OfficerBox(BoxLayout):
         self.officersBox = BoxLayout()
         self.officersBox.orientation = 'vertical'
         self.add_widget(self.officersBox)
-        #Thread(target=officerCheck.startProcess).start()
         self.buildArray()
 
         # FOR TESTING (adds officer widgets)
         globals.dispRunning = True
+        globals.offRunning = True
         Thread(target=officerCheck.checkOnline).start()
 
 
@@ -532,7 +534,14 @@ class OfficerScreen(Screen):
     def __init__(self, **kwargs):
         super(OfficerScreen, self).__init__(**kwargs)
         self.ids.logout.bind(on_press=lambda x: self.logout())  # Bind logout button to logout
-        self.ids.officerName.text = globals.info[0]                     # Set the name to their name
+        self.ids.officerName.text = globals.info[0]             # Set the name to their name
+        globals.screens[2]
+        self.badge = int(globals.info[1])
+        globals.screens[2] = self
+        print(self)
+        print(globals.screens[2].ids.officerName.text)
+        Thread(target=callChecker.checkCall).start()
+
 
     # press107
     # When 10-7 button is pressed, run this, changes state of other button, and changes label
@@ -550,9 +559,10 @@ class OfficerScreen(Screen):
     # Logs out of the user account, switches screen, changes info name back to nothing,
     #  and removes screen to save memory
     def logout(self):
-        globals.info[0] = ''
+        globals.info = [None, None]
         scrn.switch_to(globals.screens[1])
         globals.screens[2] = None
+        globals.offRunning = False
 
 
 # DispatchScreen
@@ -561,18 +571,18 @@ class OfficerScreen(Screen):
 class DispatchScreen(Screen):
     def __init__(self, **kwargs):
         super(DispatchScreen, self).__init__(**kwargs)
-        self.ids.logout.bind(on_press=lambda x: self.logout(scrn, globals.screens))  # Bind logout button to logout
+        self.ids.logout.bind(on_press=lambda x: self.logout())  # Bind logout button to logout
         self.ids.dispatcherName.text = globals.info[0]                               # Set the name to users name
 
 
     # logout
     # Logs out of the user account, switches screen, changes info name back to nothing,
     #  and removes screen to save memory
-    def logout(self, scrn, screens):
+    def logout(self):
         globals.dispRunning = False
         globals.info[0] = ''
-        screens[2] = None
-        scrn.switch_to(screens[1])
+        globals.screens[2] = None
+        scrn.switch_to(globals.screens[1])
         globals.onlineOfficers = []
 
     def clearFields(self):
@@ -665,7 +675,6 @@ class LoginScreen(Screen):
 
                     # If they are a dispatcher
                     if row["dispatch"] == 1:
-                        globals.running = True
                         scrn.switch_to(globals.screens[0])
                         globals.screens[2] = DispatchScreen()
                         self.clear()
@@ -680,6 +689,7 @@ class LoginScreen(Screen):
                         return
                     # Otherwise they are an officer
                     else:
+                        globals.info[1] = row["officer_id"]
                         scrn.switch_to(globals.screens[0])
                         globals.screens[2] = OfficerScreen()
                         self.clear()
