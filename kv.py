@@ -542,6 +542,10 @@ class OfficerScreen(Screen):
         print(globals.screens[2].ids.officerName.text)
         Thread(target=callChecker.checkCall).start()
 
+    def clear(self):
+        self.ids.type.text, self.ids.addr.text, self.ids.city.text, self.ids.zip.text, \
+            self.ids.place.text, self.ids.phone.text, self.ids.desc.text = (' ', ' ', ' ', ' ', ' ', ' ', ' ')
+
 
     # press107
     # When 10-7 button is pressed, run this, changes state of other button, and changes label
