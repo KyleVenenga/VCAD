@@ -10,7 +10,7 @@ block_cipher = None
 
 
 a = Analysis(['kv.py'],
-             pathex=['C:\\Users\\VeNinjaK\\Documents\\AndroidApp'],
+             pathex=['C:\\Users\\VeNinjaK\\Documents\\VCAD'],
              binaries=[],
              datas=[],
              hiddenimports=[],

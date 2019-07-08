@@ -29,7 +29,6 @@ from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.properties import StringProperty
 import time
-import asyncio
 import datetime
 import math
 import pymysql
@@ -107,6 +106,14 @@ def updateAvailability(id, avail):
     cnx.close()
     cursor.close()
 
+def updateOnline(id, online):
+    cnx = getCNX()
+    cursor = cnx.cursor()
+    cursor.execute("update officer set on_duty = %s where officer_id = %s", (online, id))
+    cnx.commit()
+    cnx.close()
+    cursor.close()
+
 # ----------------------------------------------------------------- #
 # NON GUI CLASSES
 
@@ -146,10 +153,10 @@ class dispatchCall():
 # WIDGET CLASSES
 
 # NO LOGIC CLASSES (No code)
-
 class RoundedButton(Widget):
     def __init__(self, **kwargs):
         super(RoundedButton, self).__init__(**kwargs)
+
 
 class popupError(Popup):
     def __init__(self, **kwargs):
@@ -157,6 +164,7 @@ class popupError(Popup):
 
     def changeText(self, text):
         self.ids.errorMsg.text = text
+
 
 class CallWidget(BoxLayout):
 
@@ -535,8 +543,8 @@ class OfficerScreen(Screen):
         super(OfficerScreen, self).__init__(**kwargs)
         self.ids.logout.bind(on_press=lambda x: self.logout())  # Bind logout button to logout
         self.ids.officerName.text = globals.info[0]             # Set the name to their name
-        globals.screens[2]
         self.badge = int(globals.info[1])
+        updateOnline(self.badge, True)
         globals.screens[2] = self
         print(self)
         print(globals.screens[2].ids.officerName.text)
@@ -564,6 +572,7 @@ class OfficerScreen(Screen):
     #  and removes screen to save memory
     def logout(self):
         globals.info = [None, None]
+        updateOnline(self.badge, False)
         scrn.switch_to(globals.screens[1])
         globals.screens[2] = None
         globals.offRunning = False
@@ -577,6 +586,29 @@ class DispatchScreen(Screen):
         super(DispatchScreen, self).__init__(**kwargs)
         self.ids.logout.bind(on_press=lambda x: self.logout())  # Bind logout button to logout
         self.ids.dispatcherName.text = globals.info[0]                               # Set the name to users name
+        print(self.canvas.children)
+
+    def changeLineColor(self, isZip, text):
+        print("text: ", text)
+        if text == "" or text == " " or text == "  ":
+            print("blank")
+            return (1, 1, 1, 1), 1
+        if isZip is True:
+            try:
+                print("is int")
+                testInt = int(text)
+                if len(text) == 5:
+                    return (0, 1, 0, 1), 2
+                elif len(text) < 5:
+                    return (1, 1, 0, 1), 2
+                else:
+                    return (1, 0, 0, 1), 2
+            except:
+                print("is not int")
+                return (1, 0, 0, 1), 2
+        else:
+            print("is something else")
+            return (0, 1, 0, 1), 2
 
 
     # logout
@@ -612,6 +644,11 @@ class DispatchScreen(Screen):
                 return
         try:
             testInt = int(callList[3])
+            if len(callList[3]) != 5:
+                scrn.error = "Zip Code Format: Ensure Zip Code is a 5-digit number."
+                error = popupError()
+                error.open()
+                return
         except:
             scrn.error = "Zip Code Format: Ensure Zip Code is a number."
             error = popupError()
@@ -757,6 +794,12 @@ class LoginApp(App):
         self.title = "VCAD"
         self.loading = Screen(name='splash')
         return scrn
+
+    def stop(self):
+        if globals.info[1] is not None:
+            updateOnline(globals.info[1], False)
+        globals.offRunning = False
+        globals.dispRunning = False
 
     # fontsize
     # Sets the fontsize for the application (dynamic)

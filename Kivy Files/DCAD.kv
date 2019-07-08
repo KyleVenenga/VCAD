@@ -40,7 +40,7 @@
                     size: self.size
             GridLayout:
                 id: call
-                padding: 8
+                padding: self.width * .025 , self.height * .01, self.width * .035, self.height * .025
                 rows: 8
                 cols: 1
                 # Call Creation
@@ -59,16 +59,26 @@
                         text: "   Call Type:  "
                         size_hint: .5, .75
                     BoxLayout:
+                        id: type_line
                         padding: 20, 5, 0, 5
+                        col: (1, 1, 1, 1)
+                        wid: 1
+                        canvas.before:
+                            Color:
+                                rgba: self.col
+                            Line:
+                                points: self.x + 18, self.y + self.height * .2, self.x + self.width, self.y + self.height * .2
+                                width: self.wid
                         TextInput:
+                            on_text: type_line.col, type_line.wid = root.changeLineColor(False, self.text)
                             write_tab: False
                             multiline: False
                             on_text_validate: root.streetAddr()
-                            background_color: 0, 0, 0, 1
-                            foreground_color: 0, 1, 0, .5
+                            background_color: 0, 0, 0, 0
+                            foreground_color: .55, 1, .55, 1
                             id: callType
                             font_size: self.height * .55
-                            size_hint: 1.5, .75
+                            size_hint: 1.5, 1
                 BoxLayout:
                     # Call Creation
                     orientation: 'vertical'
@@ -79,14 +89,24 @@
                             size_hint: .5, .75
                             text: "Street Address:"
                         BoxLayout:
+                            id: add_line
                             padding: 20, 5, 0, 5
+                            col: (1, 1, 1, 1)
+                            wid: 1
+                            canvas.before:
+                                Color:
+                                    rgba: self.col
+                                Line:
+                                    points: self.x + 18, self.y + self.height * .2, self.x + self.width, self.y + self.height * .2
+                                    width: self.wid
                             TextInput:
+                                on_text: add_line.col, add_line.wid = root.changeLineColor(False, self.text)
                                 id: streetAddr
                                 write_tab: False
                                 multiline: False
-                                background_color: 0, 0, 0, 1
-                                foreground_color: 0, 1, 0, .5
-                                font_size: self.height * .45
+                                background_color: 0, 0, 0, 0
+                                foreground_color: .55, 1, .55, 1
+                                font_size: self.height * .55
                                 size_hint: 1.5, .75
                 BoxLayout:
                     # Call Creation
@@ -98,13 +118,23 @@
                             text: "     City:     "
                             size_hint: .5, .75
                         BoxLayout:
+                            id: city_line
                             padding: 20, 5, 0, 5
+                            col: (1, 1, 1, 1)
+                            wid: 1
+                            canvas.before:
+                                Color:
+                                    rgba: self.col
+                                Line:
+                                    points: self.x + 18, self.y + self.height * .2, self.x + self.width, self.y + self.height * .2
+                                    width: self.wid
                             TextInput:
+                                on_text: city_line.col, city_line.wid = root.changeLineColor(False, self.text)
                                 id: city
                                 write_tab: False
                                 multiline: False
-                                background_color: 0, 0, 0, 1
-                                foreground_color: 0, 1, 0, .5
+                                background_color: 0, 0, 0, 0
+                                foreground_color: .55, 1, .55, 1
                                 font_size: self.height * .55
                                 size_hint: 1.5, .75
                 BoxLayout:
@@ -117,15 +147,26 @@
                             text: "   Zip Code:   "
                             size_hint: .5, .75
                         BoxLayout:
+                            id: zip_line
                             padding: 20, 5, 0, 5
+                            col: (1, 1, 1, 1)
+                            wid: 1
+                            canvas.before:
+                                Color:
+                                    rgba: self.col
+                                Line:
+                                    points: self.x + 18, self.y + self.height * .2, self.x + self.height * 1.5, self.y + self.height * .2
+                                    width: self.wid
                             TextInput:
+                                on_text: zip_line.col, zip_line.wid = root.changeLineColor(True, self.text)
                                 id: zip
                                 write_tab: False
                                 multiline: False
-                                background_color: 0, 0, 0, 1
-                                foreground_color: 0, 1, 0, .5
+                                background_color: 0, 0, 0, 0
+                                foreground_color: .55, 1, .55, 1
                                 font_size: self.height * .55
                                 size_hint: 1.5, .75
+                                text: ""
 
                 BoxLayout:
                     # Call Creation
@@ -138,12 +179,22 @@
                             size_hint: .5, .75
                         BoxLayout:
                             padding: 20, 5, 0, 5
+                            id: place_line
+                            col: (1, 1, 1, 1)
+                            wid: 1
+                            canvas.before:
+                                Color:
+                                    rgba: self.col
+                                Line:
+                                    points: self.x + 18, self.y + self.height * .2, self.x + self.width, self.y + self.height * .2
+                                    width: self.wid
                             TextInput:
+                                on_text: place_line.col, place_line.wid = root.changeLineColor(False, self.text)
                                 id: place
                                 write_tab: False
                                 multiline: False
-                                background_color: 0, 0, 0, 1
-                                foreground_color: 0, 1, 0, .5
+                                background_color: 0, 0, 0, 0
+                                foreground_color: .55, 1, .55, 1
                                 font_size: self.height * .55
                                 size_hint: 1.5, .75
                 BoxLayout:
@@ -156,13 +207,23 @@
                             text: "     Phone:    "
                             size_hint: .5, .75
                         BoxLayout:
+                            id: phone_line
                             padding: 20, 5, 0, 5
+                            col: (1, 1, 1, 1)
+                            wid: 1
+                            canvas.before:
+                                Color:
+                                    rgba: self.col
+                                Line:
+                                    points: self.x + 18, self.y + self.height * .2, self.x + self.width, self.y + self.height * .2
+                                    width: self.wid
                             TextInput:
+                                on_text: phone_line.col, phone_line.wid = root.changeLineColor(False, self.text)
                                 id: phone
                                 write_tab: False
                                 multiline: False
-                                background_color: 0, 0, 0, 1
-                                foreground_color: 0, 1, 0, .5
+                                background_color: 0, 0, 0, 0
+                                foreground_color: .55, 1, .55, 1
                                 font_size: self.height * .55
                                 size_hint: 1.5, .75
                 BoxLayout:
@@ -175,13 +236,24 @@
                             text: "  Description: "
                             size_hint: .5, .75
                         BoxLayout
+                            id: desc_line
                             padding: 20, 5, 0, 5
+                            col: (0, 0, 0, .25)
+                            wid: 1
+                            canvas.before:
+                                Color:
+                                    rgba: self.col
+                                RoundedRectangle:
+                                    pos: (self.x + 10, self.y)
+                                    size: self.size
+                                    radius: [self.height * .25]
                             TextInput:
+                                #on_text: desc_line.col, desc_line.wid = root.changeLineColor(False, self.text)
                                 id:  description
                                 write_tab: True
                                 multiline: True
-                                background_color: 0, 0, 0, 1
-                                foreground_color: 0, 1, 0, .5
+                                background_color: 0, 0, 0, 0
+                                foreground_color: .55, 1, .55, 1
                                 font_size: self.height * .25
                                 size_hint: 1.5, 1
             OfficerBox:
