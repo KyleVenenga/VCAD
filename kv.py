@@ -40,6 +40,8 @@ import callChecker
 import classes
 import sys
 from threading import Thread
+import db
+import dbCred
 
 # NOTES FOR .KV LANGUAGE
 # Padding, left, top, right, bottom
@@ -55,34 +57,43 @@ Builder.load_file('Kivy Files/popup.kv')
 Builder.load_file('Kivy Files/RoundedButton.kv')
 
 # ----------------------------------------------------------------- #
-# CONNECT TO MYSQL DATABASE
-def getCNX():
-    cnx = pymysql.connect(user='vcad',
-                          password='vcad123',
-                          host='localhost',
-                          database='vcad',
-                          cursorclass=pymysql.cursors.DictCursor)
-    return cnx
-
-
-def getCursor():
-    cnx = getCNX()
-    cursor = cnx.cursor()
-    return cursor
-
-
-# ----------------------------------------------------------------- #
 # FUNCTIONS
 
+# addNow
+# Adds the current time to the database for on scene time
+def addNow(id):
+    cnx = dbCred.getCNX()
+    call_id = 0
+    cursor = cnx.cursor()
+    cursor.execute("select call_id from calls where officer_id = %s and active = true", id)
+    for cur in cursor:
+        call_id = cur['call_id']
+    now = datetime.datetime.now()
+    cursor.execute("select on_scene_time from calls where call_id = %s", call_id)
+    for st in cursor:
+        if st["on_scene_time"] is not None:
+            return
+    try:
+        cursor.execute("update calls set on_scene_time = %s where call_id = %s", (now, call_id))
+    except:
+        pass
+    cnx.commit()
+    cnx.close()
+    cursor.close()
+
+# printCalls
+# Prints all of the calls in the database
 def printCalls():
-    cursor = getCursor()
+    cursor = db.getCursor()
     cursor.execute("select * from calls;")
     for row in cursor:
         print(row)
 
+# getCallID
+# Gets the newest ID for a new call (Checks all existing calls)
 def getCallID():
     print("getCallID")
-    cursor = getCursor()  # Database cursor object
+    cursor = db.getCursor()  # Database cursor object
     top = 0
     #printCalls()
     cursor.execute("select call_id from calls;")
@@ -98,16 +109,20 @@ def getCallID():
     return top + 1
 
 
+# updateAvailability
+# Changes the availability of an officer by using their ID and a boolean True for available.
 def updateAvailability(id, avail):
-    cnx = getCNX()
+    cnx = dbCred.getCNX()
     cursor = cnx.cursor()
     cursor.execute("update officer set status = %s where officer_id = %s", (avail, id))
     cnx.commit()
     cnx.close()
     cursor.close()
 
+# updateOnline
+# Changes the online status of an officer by their id using a boolean, true for online.
 def updateOnline(id, online):
-    cnx = getCNX()
+    cnx = dbCred.getCNX()
     cursor = cnx.cursor()
     cursor.execute("update officer set on_duty = %s where officer_id = %s", (online, id))
     cnx.commit()
@@ -134,19 +149,22 @@ class dispatchCall():
         self.officer_id = list[7]
         self.report = ""
         self.active = True
+        self.on_scene_time = None
         print("created call")
 
-        statement = "INSERT INTO calls VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )"
+        statement = "INSERT INTO calls VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         print(statement)
-        cnx = getCNX()
+        cnx = dbCred.getCNX()
         cursor = cnx.cursor()
         cursor.execute(statement, (self.call_id, self.callType, self.street_address, self.city, self.zip, self.place,
                                    self.phone, self.description, self.time_start, self.time_end, self.officer_id,
-                                   self.report, self.active))
+                                   self.report, self.active, self.on_scene_time))
         cnx.commit()
+        cursor.execute("update officer set cur_call = %s where officer_id = %s", (self.call_id, self.officer_id))
+        cnx.commit()
+        cnx.close()
         cursor.close()
         print("finished")
-
 
 
 # ----------------------------------------------------------------- #
@@ -191,10 +209,17 @@ class VBoxWidget(Widget):
         super(VBoxWidget, self).__init__(**kwargs)
 
 
+# ----------------------------------------------------------------- #
+# LOGIC CODED WIDGETS
+
+# DCADOfficerInfo
+# A widget that holds the officer information and buttons concerning the officer for the dispatcher screen
 class DCADOfficerInfo(BoxLayout):
     def __init__(self, **kwargs):
         super(DCADOfficerInfo, self).__init__(**kwargs)
         self.state = False
+        self.on_scene = False
+
     # press107
     # When 10-7 button is pressed, run this, changes state of other button, and changes label
     def press107(self):
@@ -212,13 +237,37 @@ class DCADOfficerInfo(BoxLayout):
     def press108(self):
         if self.ids.tenEight.state != "down":
             self.state = True
+            db.updateOnScene(int(self.ids.badgeNum.text), False)
+            self.ids.onScene.state = "down"
             self.ids.tenSeven.state = "down"
         else:
             self.ids.tenSeven.state = "normal"
             self.state = False
-        print(self.state)
         updateAvailability(int(self.ids.badgeNum.text), self.state)
 
+    # press23
+    # Function called when the 10-23 button is pushed
+    def press23(self):
+        if self.ids.onScene.state == "normal":
+            if self.state == True:
+                self.ids.onScene.state = "down"
+            else:
+                addNow(self.ids.badgeNum.text, " ")
+                db.updateOnScene(int(self.ids.badgeNum.text), True)
+        else:
+            db.updateOnScene(int(self.ids.badgeNum.text), False)
+        updateAvailability(int(self.ids.badgeNum.text), self.state)
+
+    # change23Button
+    # Function called to change the status of the button based on a boolean
+    def change23Button(self, on_scene):
+        if on_scene == False:
+            self.ids.onScene.state = "down"
+        else:
+            self.ids.onScene.state = "normal"
+
+    # changeStatusButton
+    # Changes the status of the 10-8 and 10-7 buttons based on their status (boolean)
     def changeStatusButton(self, status):
         self.state = status
         if status == False:
@@ -229,16 +278,19 @@ class DCADOfficerInfo(BoxLayout):
             self.ids.tenEight.state = "normal"
         updateAvailability(int(self.ids.badgeNum.text), self.state)
 
+    # sendCall
+    # Called when a call is sent, when the send button is pushed
     def sendCall(self):
         self.state = False
         self.changeStatusButton(False)
         updateAvailability(int(self.ids.badgeNum.text), self.state)
+        db.updateOnScene(int(self.ids.badgeNum.text), False)
 
+    # sendBut
+    # Function that is called to call another function from another class/screen
     def sendBut(self, id):
         globals.screens[2].createCall(id)
 
-# ----------------------------------------------------------------- #
-# LOGIC CODED WIDGETS
 
 # MyLabel
 # Widget (Image) for implementing resizeable text
@@ -311,8 +363,6 @@ class CallsBox(BoxLayout):
         # DISPLAYS ALL CALLS
         self.displayRange()
         globals.offRunning = True
-        print(globals.screens[2], "Blah")
-        #Thread(target=callChecker.checkCall(globals.info[1])).start()
 
     # displayRange
     # Displays the range of calls.
@@ -385,7 +435,6 @@ class OfficerBox(BoxLayout):
         self.pages = math.ceil(len(self.officers) / 10)     # Max number of pages
         self.allOfficers = []
 
-
         # THIS SECTION ADDS A LABEL FOR PREVIOUS OFFICERS
         self.orientation = "vertical"
         self.labBox = AnchorLayout()
@@ -434,9 +483,10 @@ class OfficerBox(BoxLayout):
         globals.offRunning = True
         Thread(target=officerCheck.checkOnline).start()
 
-
+    # buildArray
+    # Builds an array of officer widget objects
     def buildArray(self):
-        cursor = getCursor()
+        cursor = db.getCursor()
         cursor.execute("select * from officer where dispatch = FALSE and officer_id > 1")
         for row in cursor:
             cur = DCADOfficerInfo()
@@ -446,9 +496,13 @@ class OfficerBox(BoxLayout):
             cur.width = self.width
             cur.oid = int(row["officer_id"])
             print("ID: ", cur.oid)
+            cur.ids.onScene.state = "down"
             self.allOfficers.append(cur)
+
         cursor.close()
 
+    # putOfficerIn
+    # Displays an officers information on the screen when called
     def putOfficerIn(self, id):
         for cur in self.allOfficers:
             if str(id) == cur.ids.badgeNum.text:
@@ -517,23 +571,24 @@ class OfficerBox(BoxLayout):
                 return
         self.curPage.text = "Page: " + str(self.page)
 
+    # deleteOfficer
+    # Deletes an officer from the screen (removes it)
     def deleteOfficer(self, badge):
         for officer in self.officers:
             if officer.ids.badgeNum.text == str(badge):
                 self.officers.remove(officer)
                 self.displayRange()
 
+    # getOfficer
+    # Returns the officer widget object for a given ID
     def getOfficer(self, id):
         for officer in self.officers:
             if officer.ids.badgeNum.text == str(id):
                 return officer
 
 
-
-
 # ----------------------------------------------------------------- #
 # SCREENS
-
 
 # OfficerScreen
 # Screen that the officer views
@@ -588,26 +643,24 @@ class DispatchScreen(Screen):
         self.ids.dispatcherName.text = globals.info[0]                               # Set the name to users name
         print(self.canvas.children)
 
+    # changeLineColor
+    # Changes the line color depending on the validation
     def changeLineColor(self, isZip, text):
-        print("text: ", text)
+        # If the line is blank, then keep the line the same
         if text == "" or text == " " or text == "  ":
-            print("blank")
             return (1, 1, 1, 1), 1
         if isZip is True:
             try:
-                print("is int")
                 testInt = int(text)
-                if len(text) == 5:
+                if len(text) == 5:  # If we are an int, and we are 5 integers long
                     return (0, 1, 0, 1), 2
-                elif len(text) < 5:
+                elif len(text) < 5: # If int is less than 5 integers
                     return (1, 1, 0, 1), 2
-                else:
+                else:   # If we are above 5 ints long
                     return (1, 0, 0, 1), 2
-            except:
-                print("is not int")
+            except: # Is Not an int
                 return (1, 0, 0, 1), 2
         else:
-            print("is something else")
             return (0, 1, 0, 1), 2
 
 
@@ -629,7 +682,6 @@ class DispatchScreen(Screen):
         self.ids.place.text = ""
         self.ids.phone.text = ""
         self.ids.description.text = ""
-
 
     def createCall(self, id):
         print("Creating Call")
@@ -655,7 +707,7 @@ class DispatchScreen(Screen):
             error.open()
             return
         officer = self.ids.ob.getOfficer(id)
-        cursor = getCursor()
+        cursor = db.getCursor()
         cursor.execute("select status from officer where officer_id = %s", id)
         for row in cursor:
             if row["status"] == 0:
@@ -695,7 +747,7 @@ class LoginScreen(Screen):
         # VARIABLES
         password = str(self.ids.password.text)  # Password the user entered
         username = str(self.ids.username.text)  # Username the user entered
-        cursor = getCursor()                   # Database cursor object
+        cursor = db.getCursor()                   # Database cursor object
 
         # LOGIC
         cursor.execute("select * from officer;")    # Execute SQL code to gather officer info

@@ -10,6 +10,8 @@ import datetime
 import classes
 import tts
 from threading import Thread
+import db
+import dbCred
 
 # checkCall
 # main function for checking
@@ -21,7 +23,7 @@ def checkCall():
         # If there is no current call - Text should be blank (' ' for aesthetic purposes)
         if globals.screens[2].ids.type.text == ' ':
             # Build cursor object with the call info
-            cnx = getCNX()
+            cnx = dbCred.getCNX()
             cursor = cnx.cursor()
             cursor.execute("select * from calls where officer_id = %s and active = True", globals.info[1])
             # Run through each item in the cursor, print it to the screen, build array for gTTS
@@ -49,7 +51,7 @@ def checkCall():
             cursor.close()
         # If in a current call, check if their status is available then end call
         else:
-            cnx = getCNX()
+            cnx = dbCred.getCNX()
             cursor = cnx.cursor()
             # Get current status
             cursor.execute("select status from officer where officer_id = %s", globals.info[1])
@@ -66,18 +68,4 @@ def checkCall():
         time.sleep(.25)
     print("Stopping Thread")
 
-# Building database info (Change this to own file later)
-def getCNX():
-    cnx = pymysql.connect(user='vcad',
-                          password='vcad123',
-                          host='localhost',
-                          database='vcad',
-                          cursorclass=pymysql.cursors.DictCursor)
-    return cnx
-
-
-def getCursor():
-    cnx = getCNX()
-    cursor = cnx.cursor()
-    return cursor
 

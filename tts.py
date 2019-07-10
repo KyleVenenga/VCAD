@@ -15,6 +15,7 @@ from googletrans import Translator
 from pygame import mixer
 import pygame, time
 
+
 # build
 # inputs a list of things to say [call type, addr, building type, description]
 def build(ttsp, lang='en'):
