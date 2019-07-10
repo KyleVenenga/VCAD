@@ -40,6 +40,7 @@ import callChecker
 import classes
 import sys
 from threading import Thread
+import db
 
 # NOTES FOR .KV LANGUAGE
 # Padding, left, top, right, bottom
@@ -73,6 +74,29 @@ def getCursor():
 
 # ----------------------------------------------------------------- #
 # FUNCTIONS
+def addNow(id, col):
+    cnx = getCNX()
+    call_id = 0
+    cursor = cnx.cursor()
+    cursor.execute("select call_id from calls where officer_id = %s and active = true", id)
+    for cur in cursor:
+        call_id = cur['call_id']
+    now = datetime.datetime.now()
+    cursor.execute("select on_scene_time from calls where call_id = %s", call_id)
+    for st in cursor:
+        if st["on_scene_time"] is not None:
+            print("Scene time is not None")
+            return
+    print("Call Id: ", call_id)
+    try:
+        cursor.execute("update calls set on_scene_time = %s where call_id = %s", (now, call_id))
+        print("We be workin yo!")
+    except:
+        print("we not be workin yo")
+    cnx.commit()
+    cnx.close()
+    cursor.close()
+
 
 def printCalls():
     cursor = getCursor()
@@ -134,16 +158,20 @@ class dispatchCall():
         self.officer_id = list[7]
         self.report = ""
         self.active = True
+        self.on_scene_time = None
         print("created call")
 
-        statement = "INSERT INTO calls VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )"
+        statement = "INSERT INTO calls VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         print(statement)
         cnx = getCNX()
         cursor = cnx.cursor()
         cursor.execute(statement, (self.call_id, self.callType, self.street_address, self.city, self.zip, self.place,
                                    self.phone, self.description, self.time_start, self.time_end, self.officer_id,
-                                   self.report, self.active))
+                                   self.report, self.active, self.on_scene_time))
         cnx.commit()
+        cursor.execute("update officer set cur_call = %s where officer_id = %s", (self.call_id, self.officer_id))
+        cnx.commit()
+        cnx.close()
         cursor.close()
         print("finished")
 
@@ -195,6 +223,8 @@ class DCADOfficerInfo(BoxLayout):
     def __init__(self, **kwargs):
         super(DCADOfficerInfo, self).__init__(**kwargs)
         self.state = False
+        self.on_scene = False
+
     # press107
     # When 10-7 button is pressed, run this, changes state of other button, and changes label
     def press107(self):
@@ -212,12 +242,30 @@ class DCADOfficerInfo(BoxLayout):
     def press108(self):
         if self.ids.tenEight.state != "down":
             self.state = True
+            db.updateOnScene(int(self.ids.badgeNum.text), False)
+            self.ids.onScene.state = "down"
             self.ids.tenSeven.state = "down"
         else:
             self.ids.tenSeven.state = "normal"
             self.state = False
-        print(self.state)
         updateAvailability(int(self.ids.badgeNum.text), self.state)
+
+    def press23(self):
+        if self.ids.onScene.state == "normal":
+            if self.state == True:
+                self.ids.onScene.state = "down"
+            else:
+                addNow(self.ids.badgeNum.text, " ")
+                db.updateOnScene(int(self.ids.badgeNum.text), True)
+        else:
+            db.updateOnScene(int(self.ids.badgeNum.text), False)
+        updateAvailability(int(self.ids.badgeNum.text), self.state)
+
+    def change23Button(self, on_scene):
+        if on_scene == False:
+            self.ids.onScene.state = "down"
+        else:
+            self.ids.onScene.state = "normal"
 
     def changeStatusButton(self, status):
         self.state = status
@@ -233,6 +281,7 @@ class DCADOfficerInfo(BoxLayout):
         self.state = False
         self.changeStatusButton(False)
         updateAvailability(int(self.ids.badgeNum.text), self.state)
+        db.updateOnScene(int(self.ids.badgeNum.text), False)
 
     def sendBut(self, id):
         globals.screens[2].createCall(id)
@@ -311,8 +360,7 @@ class CallsBox(BoxLayout):
         # DISPLAYS ALL CALLS
         self.displayRange()
         globals.offRunning = True
-        print(globals.screens[2], "Blah")
-        #Thread(target=callChecker.checkCall(globals.info[1])).start()
+
 
     # displayRange
     # Displays the range of calls.
@@ -446,7 +494,9 @@ class OfficerBox(BoxLayout):
             cur.width = self.width
             cur.oid = int(row["officer_id"])
             print("ID: ", cur.oid)
+            cur.ids.onScene.state = "down"
             self.allOfficers.append(cur)
+
         cursor.close()
 
     def putOfficerIn(self, id):
@@ -629,7 +679,6 @@ class DispatchScreen(Screen):
         self.ids.place.text = ""
         self.ids.phone.text = ""
         self.ids.description.text = ""
-
 
     def createCall(self, id):
         print("Creating Call")

@@ -291,6 +291,21 @@
             ToggleButton:
                 canvas.before:
                     Color:
+                        rgba: (.1,.1,.85,1) if self.state=='normal' else (.1, 0.2, 0.45, .85)  # visual feedback of press
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [self.height * .5]
+                background_color: 0,0,0,0
+                id: onScene
+                font_size: .55 * self.height
+                text: "10-23"
+                on_press: root.press23()
+        BoxLayout:
+            padding: 5, 5, 5, 5
+            ToggleButton:
+                canvas.before:
+                    Color:
                         rgba: (1,0,0,1) if self.state=='normal' else (.4, 0.1, 0.2, .75)  # visual feedback of press
                     RoundedRectangle:
                         pos: self.pos
@@ -300,8 +315,6 @@
                 id: tenSeven
                 font_size: .55 * self.height
                 text: "10-7"
-                background_down: 'images/tenSevenActive.png'
-                background_normal: 'images/tenSevenIdle.png'
                 on_press: root.press107()
         BoxLayout:
             padding: 5, 5, 5, 5
