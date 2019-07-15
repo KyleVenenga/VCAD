@@ -25,6 +25,7 @@ def updateOnScene(id, onScene):
     cursor.execute("update officer set on_scene = %s where officer_id = %s", (onScene, id))
     cnx.commit()
     cnx.close()
+<<<<<<< HEAD
     cursor.close()
 
 def getCursor():
