@@ -17,7 +17,7 @@ def checkOnline():
     # Run while dispatcher screen is running
     while globals.dispRunning is True:
         # Build database information for all on duty officers
-        cursor = dbCred.getCursor()
+        cursor = db.getCursor()
         cursor.execute("select * from officer where  on_duty = True")
         checkOffline() # Check to see if any officers previously online have gone offline
         # Cycle through all the online officers
@@ -62,7 +62,7 @@ def checkOnline():
 # checkOffline
 # Checks if there were any previously online officers that have now gone offline
 def checkOffline():
-    cursor = dbCred.getCursor()
+    cursor = db.getCursor()
     for off in globals.onlineOfficers:
         cursor.execute("select on_duty from officer where officer_id = %s", off.id)
         for row in cursor:

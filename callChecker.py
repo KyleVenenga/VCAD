@@ -16,8 +16,8 @@ import dbCred
 # checkCall
 # main function for checking
 def checkCall():
-    time.sleep(1)
-    print("Starting Thread")
+    time.sleep(5)
+    print("Starting Call Check Thread")
     # While the officer screen is open/logged in
     while globals.offRunning is True:
         # If there is no current call - Text should be blank (' ' for aesthetic purposes)
@@ -28,7 +28,6 @@ def checkCall():
             cursor.execute("select * from calls where officer_id = %s and active = True", globals.info[1])
             # Run through each item in the cursor, print it to the screen, build array for gTTS
             for row in cursor:
-                print(row)
                 ttsp = []
                 globals.screens[2].ids.type.text = row["type"]
                 ttsp.append(row["type"])
@@ -45,6 +44,8 @@ def checkCall():
                 # Change availability
                 cursor.execute('update officer set cur_call = %s where officer_id = %s', (globals.cur_call, globals.info[1]))
                 cnx.commit()
+                globals.screens[2].ids.cb.buildCall(row['time_start'], row['street_address'], row['call_id'])
+
                 # Build the gTTS and play it
                 Thread(target=tts.build(ttsp)).start()
             cnx.close()

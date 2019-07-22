@@ -1,7 +1,7 @@
 # VCAD
 # Created 2019
 # Computer assisted dispatcher for a smaller security company
-# Developer: Kyle Venenga
+# Developer: Kyle Venengaasd
 
 import kivy
 from kivy.app import App
@@ -42,6 +42,8 @@ import sys
 from threading import Thread
 import db
 import dbCred
+from kivy.config import Config
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
 # NOTES FOR .KV LANGUAGE
 # Padding, left, top, right, bottom
@@ -252,7 +254,7 @@ class DCADOfficerInfo(BoxLayout):
             if self.state == True:
                 self.ids.onScene.state = "down"
             else:
-                addNow(self.ids.badgeNum.text, " ")
+                addNow(self.ids.badgeNum.text)
                 db.updateOnScene(int(self.ids.badgeNum.text), True)
         else:
             db.updateOnScene(int(self.ids.badgeNum.text), False)
@@ -335,7 +337,7 @@ class CallsBox(BoxLayout):
         self.butBox = GridLayout()
         self.butBox.orientation = 'horizontal'
         self.butBox.size_hint = (1, .083)
-        self.butBox.padding = [0, 5, 5, 0]
+        self.butBox.padding = [0, 5, self.butBox.width / 15, self.butBox.height / 15]
         self.butBox.rows = 1
         self.prev = RoundedButton()
         self.next = RoundedButton()
@@ -356,25 +358,64 @@ class CallsBox(BoxLayout):
         self.prevCalls.orientation = 'vertical'
         self.add_widget(self.prevCalls)
 
+        self.newCall = CallWidget()
+        print("newCall ID: ", id(self.newCall))
         # TESTING (Adds calls to box for testing)
-        for x in range(33):
-            self.addCall()
+        self.buildPrevCalls()
 
         # DISPLAYS ALL CALLS
         self.displayRange()
         globals.offRunning = True
+
+    def buildPrevCalls(self):
+        cursor = db.getCursor()
+        print("Building prev calls")
+        print(globals.curOff, "Cur officer")
+        cursor.execute('select * from calls where officer_id = %s', globals.info[1])
+        for call in cursor:
+            print("Call: ", call)
+            self.addCall(call['time_start'], call['street_address'], call['call_id'])
+
+    def checkCallID(self, id):
+        for call in self.calls:
+            if call.ids.callID.text == str(id):
+                return True
+        return False
+
+    def buiildCall(self, time, address, id):
+        print("In testing", self.checkCallID(id))
+        if self.checkCallID(id) is False:
+            cur = CallWidget()
+            cur._disabled_val = self.newCall._disabled_value
+            print(cur)
+            cur.ids.time.text = time.strftime("%b %d %I:%M %p")
+            cur.ids.address.text = str(address)
+            cur.ids.callID.text = str(id)
+            self.calls.append(cur)
+            self.displayRange()
+
+    def test(self):
+        print("TESTING")
 
     # displayRange
     # Displays the range of calls.
     # Adds all the calls for the current page of the callBox
     # Displays calls within the range of the current page
     def displayRange(self):
+        print('**********')
+        for calls in self.calls:
+            print(calls)
+
+        self.prevCalls.clear_widgets()
         # Variables
         end = self.page * 10
         start = end - 10
         remain = len(self.calls) % 10
         self.pages = math.ceil(len(self.calls) / 10)
 
+        if len(self.calls) is 0:
+            print("Length of calls is 0")
+            return
         # If we have no remainder that means we display 10
         if remain is 0 or self.page < self.pages:
             for start in range(start, end):
@@ -390,9 +431,12 @@ class CallsBox(BoxLayout):
     # addCall
     # adds a new call widget to the array
     # CURRENTLY NEEDS WORK THIS IS DEFAULT (Database work)
-    def addCall(self):
+    def addCall(self, time, address, id):
         self.cur = CallWidget()
-        self.cur.padding = [0, self.height / 10, 5, 0]
+        self.cur.ids.callID.text = str(id)
+        self.cur.ids.time.text = time.strftime("%b %d %I:%M %p")
+        self.cur.ids.address.text = str(address)
+        #self.cur.padding = [0, self.height / 10, 5, 0]
         self.cur.width = self.width
         self.calls.append(self.cur)
 
@@ -501,6 +545,9 @@ class OfficerBox(BoxLayout):
 
         cursor.close()
 
+    def _iterate_layout(self, sizes):
+        return super()._iterate_layout(sizes)
+
     # putOfficerIn
     # Displays an officers information on the screen when called
     def putOfficerIn(self, id):
@@ -602,7 +649,7 @@ class OfficerScreen(Screen):
         updateOnline(self.badge, True)
         globals.screens[2] = self
         print(self)
-        print(globals.screens[2].ids.officerName.text)
+        print(globals.info[1])
         Thread(target=callChecker.checkCall).start()
 
     def clear(self):
