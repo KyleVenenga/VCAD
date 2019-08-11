@@ -12,7 +12,7 @@ import pymysql
 def getCNX():
     cnx = pymysql.connect(user='vcad',
                           password='vcad123',
-                          host='localhost',
+                          host='192.168.1.170',
                           database='vcad',
                           cursorclass=pymysql.cursors.DictCursor)
     return cnx

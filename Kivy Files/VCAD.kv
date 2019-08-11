@@ -218,11 +218,10 @@
                         size_hint: .5, .75
                         font_size: self.height * .5
                         text: '   Call Type:  '
-                    Label:
+                    MyLabel:
                         id: type
                         size_hint: 1, .75
                         text: ' '
-                        font_size: .05 * (self.width + self.height)
                         color: 0, 1, 0, .5
                         canvas.before:
                             Color:
@@ -239,10 +238,9 @@
                         size_hint: .5, .75
                         font_size: self.height * .5
                         text: 'Street Address: '
-                    Label:
+                    MyLabel:
                         id: addr
                         size_hint: 1, .75
-                        font_size: .05 * (self.width + self.height)
                         color: 0, 1, 0, .5
                         text: ' '
                         canvas.before:
