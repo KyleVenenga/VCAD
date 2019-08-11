@@ -1,0 +1,7 @@
+VCAD is reliant on the database to work.
+
+1. Import the database into local MySQL Server.
+2. Make sure there is a user account called vcad with a password vcad123 that has permissions
+3. In dbCred.py update the information to the account you want the program to have access to. 
+4. root password is 'admin'
+5. Make sure the server is running. (MySQLD.exe in task manager) 

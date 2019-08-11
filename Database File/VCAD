@@ -1,0 +1,95 @@
+-- MySQL dump 10.13  Distrib 8.0.17, for Win64 (x86_64)
+--
+-- Host: localhost    Database: vcad
+-- ------------------------------------------------------
+-- Server version	8.0.17
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `calls`
+--
+
+DROP TABLE IF EXISTS `calls`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `calls` (
+  `call_id` int(11) NOT NULL,
+  `type` varchar(20) DEFAULT NULL,
+  `street_address` varchar(50) DEFAULT NULL,
+  `city` varchar(21) DEFAULT NULL,
+  `zip` int(11) DEFAULT NULL,
+  `place` varchar(20) DEFAULT NULL,
+  `phone` varchar(25) DEFAULT NULL,
+  `description` varchar(300) DEFAULT NULL,
+  `time_start` datetime DEFAULT NULL,
+  `time_end` datetime DEFAULT NULL,
+  `officer_id` int(11) DEFAULT NULL,
+  `report_file` varchar(2500) DEFAULT NULL,
+  `active` tinyint(1) DEFAULT NULL,
+  `on_scene_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`call_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `calls`
+--
+
+LOCK TABLES `calls` WRITE;
+/*!40000 ALTER TABLE `calls` DISABLE KEYS */;
+INSERT INTO `calls` VALUES (1,'Alarm','123 N. Walworth Dr.','Milwaukee',53022,'Residential','123-456-7890','Glass broken, door open, glass sensors were triggered.','2019-08-10 17:33:45','2019-08-10 17:34:47',1008,'',0,NULL),(2,'Alarm','5243 S District Ave.','Milwaukee',53022,'Residential','123-456-7890','Glass broken!','2019-08-10 17:34:30','2019-08-10 17:34:47',1001,'',0,NULL),(3,'Alarm','123 N. Walworth Dr.','Milwaukee',53022,'Residential','123-456-7890','Glass broken, door open, glass sensors were triggered.','2019-08-10 17:34:59','2019-08-10 17:43:34',1001,'',0,NULL),(4,'Alarm','563 N. Acer Ct. ','Milwaukee',53022,'Residential','123-456-7890','Alarm going off','2019-08-10 17:43:35','2019-08-10 17:43:48',1001,'',0,NULL),(5,'Alarm','645 W. Belview Blvd.','Milwaukee',53022,'Residential','123-456-7890','Glass broken, door open, glass sensors were triggered.','2019-08-10 17:44:18','2019-08-10 17:44:35',1001,'',0,NULL),(6,'Alarm','123 N. Westword St.','Milwaukee',53022,'Residential','123-456-7890','Glass sensors triggered','2019-08-10 17:45:03','2019-08-10 17:45:25',1001,'',0,'2019-08-10 17:45:19'),(7,'Alarm','123 N. Walworth Dr.','Milwaukee',12213,'Commercial','123-145-1214','Cameras picked up movement.','2019-08-10 17:46:38','2019-08-10 17:46:56',1001,'',0,NULL),(8,'Alarm','645 E. Malta Ave.','Milwaukee',53022,'Residential','123-456-7890','Glass broken, door open, glass sensors were triggered.','2019-08-10 17:47:36','2019-08-10 17:48:54',1001,'',0,NULL),(9,'Alarm','432 Westwood Ct.','Milwaukee',53022,'Residential','123-456-7890','Nieghbor called in suspisious activity','2019-08-10 17:49:58','2019-08-10 17:50:16',1001,'',0,NULL),(10,'Alarm','535 Worthington Av.','Milwaukee',53022,'Residential','123-456-7890','Glass broken, door open, glass sensors were triggered.','2019-08-10 17:50:45','2019-08-10 17:51:05',1001,'',0,NULL);
+/*!40000 ALTER TABLE `calls` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `officer`
+--
+
+DROP TABLE IF EXISTS `officer`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `officer` (
+  `officer_id` int(11) NOT NULL,
+  `first_name` varchar(20) DEFAULT NULL,
+  `last_name` varchar(20) DEFAULT NULL,
+  `dispatch` tinyint(1) DEFAULT NULL,
+  `pass` varchar(30) DEFAULT NULL,
+  `username` varchar(30) DEFAULT NULL,
+  `status` tinyint(1) DEFAULT NULL,
+  `on_duty` tinyint(1) DEFAULT NULL,
+  `cur_call` int(11) DEFAULT NULL,
+  `on_scene` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`officer_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `officer`
+--
+
+LOCK TABLES `officer` WRITE;
+/*!40000 ALTER TABLE `officer` DISABLE KEYS */;
+INSERT INTO `officer` VALUES (1,'Admin','Admin',0,'admin','admin',0,0,NULL,0),(1001,'Kyle','Venenga',0,'venenga','venenga1001',1,0,NULL,0),(1002,'Mark','Schilling',0,'schilling','schilling1002',0,0,NULL,0),(1003,'Timothy','Stevens',0,'stevens','stevens1003',0,0,NULL,0),(1004,'Andrew','Anderson',0,'anderson','anderson1004',0,0,NULL,0),(1005,'Bob','Paterson',1,'paterson','paterson1005',0,0,NULL,0),(1006,'Don','Houser',0,'houser','houser1006',0,0,NULL,0),(1007,'Travis','Lincoln',0,'lincoln','lincoln1007',0,0,NULL,0),(1008,'Douglas','Young',0,'young','young1008',1,0,NULL,0);
+/*!40000 ALTER TABLE `officer` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2019-08-10 17:54:55
