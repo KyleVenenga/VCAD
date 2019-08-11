@@ -1,49 +1,32 @@
 # VCAD
 # Created 2019
 # Computer assisted dispatcher for a smaller security company
-# Developer: Kyle Venengaasd
+# Developer: Kyle Venenga
 
-import kivy
 from kivy.app import App
-from kivy.clock import Clock
 from kivy.core.window import Window
-from kivy.properties import ObjectProperty
-from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.textinput import TextInput
-from kivy.uix.button import Button
 from kivy.uix.widget import Widget
-from kivy.properties import ObjectProperty
-from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import ObjectProperty
-from kivy.graphics import Rectangle
-from kivy.graphics import RoundedRectangle
-from kivy.graphics import Color
 from kivy.uix.popup import Popup
-from kivy.graphics import Line
 from kivy.uix.anchorlayout import AnchorLayout
-from kivy.base import runTouchApp
 from kivy.lang import Builder
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.properties import StringProperty
-import time
 import datetime
 import math
-import pymysql
-import pymysql.cursors
 from kivy.uix.screenmanager import ScreenManager, Screen
 import globals
 import officerCheck
 import callChecker
-import classes
 import sys
 from threading import Thread
 import db
 import dbCred
 from kivy.config import Config
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
+
 
 # NOTES FOR .KV LANGUAGE
 # Padding, left, top, right, bottom
@@ -56,6 +39,7 @@ Builder.load_file('Kivy Files/Admin.kv')
 Builder.load_file('Kivy Files/Login.kv')
 Builder.load_file('Kivy Files/splash.kv')
 Builder.load_file('Kivy Files/popup.kv')
+Builder.load_file('Kivy Files/report.kv')
 Builder.load_file('Kivy Files/RoundedButton.kv')
 
 # ----------------------------------------------------------------- #
@@ -83,28 +67,17 @@ def addNow(id):
     cnx.close()
     cursor.close()
 
-# printCalls
-# Prints all of the calls in the database
-def printCalls():
-    cursor = db.getCursor()
-    cursor.execute("select * from calls;")
-    for row in cursor:
-        print(row)
 
 # getCallID
 # Gets the newest ID for a new call (Checks all existing calls)
 def getCallID():
-    print("getCallID")
     cursor = db.getCursor()  # Database cursor object
     top = 0
-    #printCalls()
     cursor.execute("select call_id from calls;")
     if cursor.rowcount is 0:
-        print("row count 0")
         return 1
 
     for row in cursor:
-        print("Loop")
         if row["call_id"] > top:
             top = row["call_id"]
     cursor.close()
@@ -135,6 +108,8 @@ def updateOnline(id, online):
 # NON GUI CLASSES
 
 
+# dispatchCall
+# Class for building a call object and submitting it to the database.
 class dispatchCall():
     # list [type, addr, city, zip, place, phone, desc, officer_ID]
     def __init__(self, list):
@@ -152,10 +127,8 @@ class dispatchCall():
         self.report = ""
         self.active = True
         self.on_scene_time = None
-        print("created call")
 
         statement = "INSERT INTO calls VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        print(statement)
         cnx = dbCred.getCNX()
         cursor = cnx.cursor()
         cursor.execute(statement, (self.call_id, self.callType, self.street_address, self.city, self.zip, self.place,
@@ -166,7 +139,6 @@ class dispatchCall():
         cnx.commit()
         cnx.close()
         cursor.close()
-        print("finished")
 
 
 # ----------------------------------------------------------------- #
@@ -177,19 +149,16 @@ class RoundedButton(Widget):
     def __init__(self, **kwargs):
         super(RoundedButton, self).__init__(**kwargs)
 
-
-class popupError(Popup):
-    def __init__(self, **kwargs):
-        super(popupError, self).__init__(**kwargs)
-
-    def changeText(self, text):
-        self.ids.errorMsg.text = text
-
-
 class CallWidget(BoxLayout):
 
     def __init__(self, **kwargs):
         super(CallWidget, self).__init__(**kwargs)
+
+    def openReport(self):
+        rep = report()
+        rep.setID(int(self.ids.callID.text))
+        rep.changeText()
+        rep.open()
 
 
 class CallsList(GridLayout):
@@ -214,6 +183,49 @@ class VBoxWidget(Widget):
 # ----------------------------------------------------------------- #
 # LOGIC CODED WIDGETS
 
+# report
+# Class for the report popup box
+class report(Popup):
+    def __init__(self, **kwargs):
+        super(report, self).__init__(**kwargs)
+        self.callid = 0
+
+    # setID
+    # Sets the ID to what the user clicked on
+    def setID(self, id):
+        self.callid = int(id)
+
+    # changeText
+    # Checks the database and sets the text to what the database has.
+    def changeText(self):
+        cursor = db.getCursor()
+        cursor.execute('select report_file from calls where call_id = %s', self.callid)
+        for row in cursor:
+            self.ids.reportText.text = row['report_file']
+
+    # submit
+    # Called when the user hits submit on the report button, sends information to database and closes popup
+    def submit(self):
+        cnx = dbCred.getCNX()
+        cursor = cnx.cursor()
+        expression = 'update calls set report_file = "nothing there" where call_id = 15'
+        cursor.execute(expression)
+        cursor.execute('update calls set report_file = %s where call_id = %s',
+                       (str(self.ids.reportText.text), int(self.callid)))
+        cnx.commit()
+        cnx.close()
+        cursor.close()
+        self.dismiss()
+
+
+class popupError(Popup):
+    def __init__(self, **kwargs):
+        super(popupError, self).__init__(**kwargs)
+
+    def changeText(self, text):
+        self.ids.errorMsg.text = text
+
+
 # DCADOfficerInfo
 # A widget that holds the officer information and buttons concerning the officer for the dispatcher screen
 class DCADOfficerInfo(BoxLayout):
@@ -231,7 +243,6 @@ class DCADOfficerInfo(BoxLayout):
         else:
             self.ids.tenEight.state = "normal"
             self.state = True
-        print(self.state)
         updateAvailability(int(self.ids.badgeNum.text), self.state)
 
     # press108
@@ -359,7 +370,6 @@ class CallsBox(BoxLayout):
         self.add_widget(self.prevCalls)
 
         self.newCall = CallWidget()
-        print("newCall ID: ", id(self.newCall))
         # TESTING (Adds calls to box for testing)
         self.buildPrevCalls()
 
@@ -369,11 +379,8 @@ class CallsBox(BoxLayout):
 
     def buildPrevCalls(self):
         cursor = db.getCursor()
-        print("Building prev calls")
-        print(globals.curOff, "Cur officer")
         cursor.execute('select * from calls where officer_id = %s', globals.info[1])
         for call in cursor:
-            print("Call: ", call)
             self.addCall(call['time_start'], call['street_address'], call['call_id'])
 
     def checkCallID(self, id):
@@ -382,48 +389,38 @@ class CallsBox(BoxLayout):
                 return True
         return False
 
-    def buiildCall(self, time, address, id):
-        print("In testing", self.checkCallID(id))
+    def buildCall(self, time, address, id):
         if self.checkCallID(id) is False:
             cur = CallWidget()
             cur._disabled_val = self.newCall._disabled_value
-            print(cur)
             cur.ids.time.text = time.strftime("%b %d %I:%M %p")
             cur.ids.address.text = str(address)
             cur.ids.callID.text = str(id)
             self.calls.append(cur)
             self.displayRange()
 
-    def test(self):
-        print("TESTING")
-
     # displayRange
     # Displays the range of calls.
     # Adds all the calls for the current page of the callBox
     # Displays calls within the range of the current page
     def displayRange(self):
-        print('**********')
-        for calls in self.calls:
-            print(calls)
-
         self.prevCalls.clear_widgets()
         # Variables
-        end = self.page * 10
-        start = end - 10
+        start = len(self.calls) - ((self.page * 10) - 9)
         remain = len(self.calls) % 10
         self.pages = math.ceil(len(self.calls) / 10)
 
         if len(self.calls) is 0:
-            print("Length of calls is 0")
             return
         # If we have no remainder that means we display 10
         if remain is 0 or self.page < self.pages:
-            for start in range(start, end):
-                self.prevCalls.add_widget(self.calls[start])
+            for cur in range(start, start - 10, -1):
+                self.prevCalls.add_widget(self.calls[cur])
         # Otherwise we just show 10 - the amount we have left over
         else:
-            for start in range(start, (start + remain)):
-                self.prevCalls.add_widget(self.calls[start])
+            for cur in range((start), start - remain, -1):
+                print("Cur",cur, "start", start, "Remain", remain)
+                self.prevCalls.add_widget(self.calls[cur])
             # Add blank widgets to keep all of the widgets the same size
             for x in range(10-remain):
                 self.prevCalls.add_widget(BoxLayout())
@@ -436,7 +433,6 @@ class CallsBox(BoxLayout):
         self.cur.ids.callID.text = str(id)
         self.cur.ids.time.text = time.strftime("%b %d %I:%M %p")
         self.cur.ids.address.text = str(address)
-        #self.cur.padding = [0, self.height / 10, 5, 0]
         self.cur.width = self.width
         self.calls.append(self.cur)
 
@@ -539,14 +535,10 @@ class OfficerBox(BoxLayout):
             cur.padding = [0, self.height / 10, 5, 0]
             cur.width = self.width
             cur.oid = int(row["officer_id"])
-            print("ID: ", cur.oid)
             cur.ids.onScene.state = "down"
             self.allOfficers.append(cur)
 
         cursor.close()
-
-    def _iterate_layout(self, sizes):
-        return super()._iterate_layout(sizes)
 
     # putOfficerIn
     # Displays an officers information on the screen when called
@@ -584,7 +576,6 @@ class OfficerBox(BoxLayout):
     # adds a new officer widget to the array
     # CURRENTLY NEEDS WORK THIS IS DEFAULT (Database work)
     def addOfficer(self, officer):
-        print("Adding Officer")
         self.cur = DCADOfficerInfo()
         self.cur.ids.name.text = officer.last
         self.cur.ids.badgeNum.text = str(officer.id)
@@ -626,6 +617,25 @@ class OfficerBox(BoxLayout):
                 self.officers.remove(officer)
                 self.displayRange()
 
+    # updateState
+    # Updates the state buttons for an officer
+    def updateState(self):
+        for officer in self.officers:
+            cursor = db.getCursor()
+            cursor.execute('select * from officer where officer_id =%s',  int(officer.ids.badgeNum.text))
+            for row in cursor:
+                if row['status'] is 0:
+                    officer.ids.tenSeven.state = 'normal'
+                    officer.ids.tenEight.state = 'down'
+                    officer.ids.onScene.state = 'normal'
+                if row['status'] is 1:
+                    officer.ids.tenSeven.state = 'down'
+                    officer.ids.tenEight.state = 'normal'
+                if row['on_scene'] is 1:
+                    officer.ids.onScene.state = 'normal'
+                if row['on_scene'] is 0:
+                    officer.ids.onScene.state = 'down'
+
     # getOfficer
     # Returns the officer widget object for a given ID
     def getOfficer(self, id):
@@ -652,22 +662,44 @@ class OfficerScreen(Screen):
         print(globals.info[1])
         Thread(target=callChecker.checkCall).start()
 
+    # clear
+    # Clears all of the textbox information for current call
     def clear(self):
         self.ids.type.text, self.ids.addr.text, self.ids.city.text, self.ids.zip.text, \
             self.ids.place.text, self.ids.phone.text, self.ids.desc.text = (' ', ' ', ' ', ' ', ' ', ' ', ' ')
 
-
     # press107
-    # When 10-7 button is pressed, run this, changes state of other button, and changes label
+    # When 10-7 button is pressed, run this, changes state of other button, updates database
     def press107(self):
-        self.ids.tenEight.state = "down" if self.ids.tenSeven.state != "down" else "normal"
-        self.ids.status.text = "10-7 - Out of Service" if self.ids.tenSeven.state == "down" else "10-8 - In Service"
+        print('Press 10-7')
+        self.ids.tenEight.state = "down" if self.ids.tenEight.state != "down" else "normal"
+        if self.ids.tenEight.state == 'down':
+            updateAvailability(self.badge, 0)
+        else:
+            db.updateOnScene(self.badge, False)
+            updateAvailability(self.badge, 1)
 
     # press108
     # When 10-8 button is pressed, run this, changes state of other button, and changes label
     def press108(self):
+        print('Press 10-8')
         self.ids.tenSeven.state = "down" if self.ids.tenEight.state != "down" else "normal"
-        self.ids.status.text = "10-7 - Out of Service" if self.ids.tenSeven.state == "down" else "10-8 - In Service"
+        if self.ids.tenEight.state == 'down':
+            updateAvailability(self.badge, 0)
+        else:
+            db.updateOnScene(self.badge, False)
+            updateAvailability(self.badge, 1)
+
+    # press1023
+    # Called when the 23 button is pushed, checks states and allows only if 10-7 not 10-8, updates to db
+    def press1023(self):
+        if self.ids.tenSeven.state == 'normal':
+            if self.ids.tenTwentyThree.state == 'normal':
+                self.ids.tenTwentyThree.state = 'down'
+                db.updateOnScene(self.badge, True)
+            else:
+                self.ids.tenTwentyThree.state = 'normal'
+                db.updateOnScene(self.badge, False)
 
     # logout
     # Logs out of the user account, switches screen, changes info name back to nothing,
@@ -688,7 +720,6 @@ class DispatchScreen(Screen):
         super(DispatchScreen, self).__init__(**kwargs)
         self.ids.logout.bind(on_press=lambda x: self.logout())  # Bind logout button to logout
         self.ids.dispatcherName.text = globals.info[0]                               # Set the name to users name
-        print(self.canvas.children)
 
     # changeLineColor
     # Changes the line color depending on the validation
@@ -721,6 +752,8 @@ class DispatchScreen(Screen):
         scrn.switch_to(globals.screens[1])
         globals.onlineOfficers = []
 
+    # clearFields
+    # Clears all of the fields in the text boxes
     def clearFields(self):
         self.ids.callType.text = ""
         self.ids.streetAddr.text = ""
@@ -730,25 +763,27 @@ class DispatchScreen(Screen):
         self.ids.phone.text = ""
         self.ids.description.text = ""
 
+    # createCall
+    # Called when the call is sent to an officer, handles creating the call and updating to database.
+        # Ueses error handling to make sure that the call information is correct
     def createCall(self, id):
-        print("Creating Call")
         # list [type, addr, city, zip, place, phone, desc, officer_ID]
         callList = [self.ids.callType.text, self.ids.streetAddr.text, self.ids.city.text, self.ids.zip.text,
                     self.ids.place.text, self.ids.phone.text, self.ids.description.text, id]
-        for item in callList:
-            if item is "" or 0:
+        for item in callList: # Error Handling - Opens error msg when something is wrong
+            if item is "" or 0: # Check if there are any empty fields
                 scrn.error = "Empty Field: Please fill in all text boxes."
                 error = popupError()
                 error.open()
                 return
         try:
             testInt = int(callList[3])
-            if len(callList[3]) != 5:
+            if len(callList[3]) != 5: # Check if Zip Code is 5 digits long
                 scrn.error = "Zip Code Format: Ensure Zip Code is a 5-digit number."
                 error = popupError()
                 error.open()
                 return
-        except:
+        except: # If it has any letters/other chars other than numbers
             scrn.error = "Zip Code Format: Ensure Zip Code is a number."
             error = popupError()
             error.open()
@@ -802,7 +837,7 @@ class LoginScreen(Screen):
         for row in cursor:
             # If username exists
             if row["username"] == str(username):
-                # If Password matches usernames password
+                # If Password matches username's password
                 if row["pass"] == str(password):
                     globals.info[0] = row["last_name"]  # Set global last name to their last name
 
@@ -867,14 +902,15 @@ class SplashScreen(Screen):
         super(SplashScreen, self).__init__(**kwargs)
 
 
+# ----------------------------------------------------------------- #
+# SCREEN MANAGER BUILDING
+
 class ScreenManagement(ScreenManager):
     error = ""
     running = True
 
 
-# ----------------------------------------------------------------- #
-# SCREEN MANAGER BUILDING
-scrn = ScreenManagement()                           # Screen Manager Object
+scrn = ScreenManagement()                                   # Screen Manager Object
 globals.screens = [SplashScreen(), LoginScreen(), None]     # Array of screens
 scrn.switch_to(globals.screens[1])                          # Switch screens to login
 

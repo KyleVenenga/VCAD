@@ -8,7 +8,6 @@ import gtts
 from gtts.tokenizer import pre_processors
 from playsound import playsound
 import gtts.tokenizer.symbols
-import time
 import os
 from tempfile import TemporaryFile
 from googletrans import Translator
@@ -40,7 +39,7 @@ def build(ttsp, lang='en'):
     # Write to a temp file, then read and play
     tts.write_to_fp(tf)
     tf.seek(0)
-    playsound("audio/tone.mp3")
+    playsound(os.path.dirname(os.path.realpath(__file__)) + "/audio/tone.mp3")
     time.sleep(.35)
     mixer.music.load(tf)
     mixer.music.play()

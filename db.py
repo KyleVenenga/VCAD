@@ -2,7 +2,6 @@
 # Holds all of the database functions
 
 import dbCred
-import pymysql
 
 
 def getCurCall(id):

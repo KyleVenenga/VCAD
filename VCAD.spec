@@ -1,16 +1,27 @@
-# -*- mode: python -*-
+# -*- mode: python ; coding: utf-8 -*-
 from kivy_deps import sdl2, glew
-import time
 import datetime
 import math
+import sys
+from threading import Thread
+from gtts import gTTS
+import gtts
+from gtts.tokenizer import pre_processors
+from playsound import playsound
+import gtts.tokenizer.symbols
+import os
+from tempfile import TemporaryFile
+from googletrans import Translator
+from pygame import mixer
+import pygame, time
 import pymysql
-import pymysql.cursors
+import cryptography
 
 block_cipher = None
 
 
-a = Analysis(['kv.py'],
-             pathex=['C:\\Users\\VeNinjaK\\Documents\\VCAD'],
+a = Analysis(['C:\\Users\\VeNinjaK\\Documents\\VCAD\\kv.py'],
+             pathex=['C:\\Users\\VeNinjaK\\Documents\\VCAD\\Package'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -39,4 +50,5 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=True,
+               upx_exclude=[],
                name='VCAD')

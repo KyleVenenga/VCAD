@@ -1,13 +1,13 @@
 # officerCheck.py
 # Script that runs in thread to check for online/offline officers and display them, as well as checking status
 #   and changing various variables and database entries accordingly.
+# Kyle Venenga
 
 import globals
-import pymysql.cursors
 import time
 import classes
 import db
-import dbCred
+
 
 # checkOnline
 # Main function for checking if an officer is online
@@ -42,7 +42,6 @@ def checkOnline():
                         globals.screens[2].ids.ob.getOfficer(row["officer_id"]).change23Button(row["on_scene"])
                         globals.screens[2].ids.ob.getOfficer(row["officer_id"]).changeStatusButton(row["status"])
                         if off.active is True:
-                            print("Officer is active!")
                             db.setCallInactive(db.getCurCall(row["officer_id"]))
                             globals.screens[2].ids.ob.getOfficer(row["officer_id"]).change23Button(False)
                             db.updateOnScene(row["officer_id"], False)

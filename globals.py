@@ -1,4 +1,6 @@
-import classes
+# globals.py
+# Holds all of the projects global variables
+# Kyle Venenga
 
 # True if app is running
 appRunning = True

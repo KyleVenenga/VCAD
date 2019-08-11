@@ -1,3 +1,8 @@
+# classes.py
+# File that holds all of the global classes
+# Kyle Venenga
+
+
 class officer():
     def __init__(self, list):
         # list: badge_num/id, last name, active, online

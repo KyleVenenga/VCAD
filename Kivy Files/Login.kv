@@ -64,6 +64,15 @@
                 anchor_x: 'center'
                 anchor_y: 'center'
                 Button:
+                    canvas.before:
+                        Color:
+                            rgba: (.55,.55,.55, .9) if self.state=='normal' else (.9, 0.9, .9, .85)  # visual feedback of press
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [self.height * .5]
+                    font_size: .55 * self.height
+                    background_color: 0,0,0,0
                     size_hint: 2, .5
                     text: "Login"
                     id: logBut

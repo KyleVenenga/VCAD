@@ -17,23 +17,31 @@
         BoxLayout:
             orientation: 'vertical'
             size_hint: .25, 1
-            padding: 5, 0, self.width / 10, 0
-            MyLabel:
+            padding: self.width/5, self.height/10, self.width / 10, self.height/10
+            Label:
                 id: callID
+                font_size: .35 * (self.width + self.height)
+                size: self.texture_size
                 color: 0, 1, 0, .5
 
         BoxLayout:
-            padding: 5, 0, self.width / 10, 0
+            padding: self.width/50, self.height/10, self.width / 10, self.height/10
             orientation: 'vertical'
-            MyLabel:
+            Label:
                 id: time
+                text_size: self.width, None
+                font_size: .1 * (self.width + self.height)
+                size: self.texture_size
                 color: 0, 1, 0, .5
                 text: "Time"
         BoxLayout:
-            padding: 5, 0, self.width / 10, 0
+            padding: self.width/150, self.height/10, self.width / 10, self.height/10
             orientation: 'vertical'
-            MyLabel:
+            Label:
                 color: 0, 1, 0, .5
+                text_size: self.width, None
+                font_size: .1 * (self.width + self.height)
+                size: self.texture_size
                 id: address
                 text: "Address"
         BoxLayout:
@@ -47,9 +55,10 @@
                         size: self.size
                         radius: [self.height * .5]
                 background_color: 0,0,0,0
-                font_size: .55 * self.height
+                font_size: .15 * (self.width + self.height)
                 id: report
                 text: "Report"
+                on_press: root.openReport()
 
 
 <HBoxWidget>:
@@ -86,25 +95,30 @@
             size_hint: .1, .1
 
 
-            GridLayout:
+            BoxLayout:
                 padding: 10, 10
                 cols: 5
                 BoxLayout:
-                    padding: 30, 5
-                    size_hint: .25, .75
-                    MyLabel:
-                        id: officerName
+                    padding: self.width/100, self.height * .005, self.width/100, self.height * .005
+                    size_hint: .85, 1
+                    orientation: 'vertical'
+                    BoxLayout:
+                        padding: self.width/500, self.height * .005, self.width *.005, self.height * .015
+                        size_hint: 1, 1
+                        Label:
+                            font_size: .135 * (self.width + self.height)
+                            id: officerName
+                    BoxLayout:
+                        padding: self.width/500, self.height * .005, self.width *.005, self.height * .015
+                        size_hint: 1, .65
+                        Label:
+                            id: status
+                            size_hint: 1, .65
+                            font_size: .105 * (self.width + self.height)
+
                 BoxLayout:
-                    padding: 30, 5
-                    size_hint: .25, .75
-                    MyLabel:
-                        id: status
-                        size_hint: 1, .75
-                        font_size: self.height * .75
-                        text: "10-8 - In Service"
-                BoxLayout:
-                    #padding: 30, 5
-                    size_hint: .25, .75
+                    padding: self.width/10, self.height/1000, self.width/10, self.height/1000
+                    size_hint: 1, 1
                     ToggleButton:
                         canvas.before:
                             Color:
@@ -114,14 +128,15 @@
                                 size: self.size
                                 radius: [self.height * .5]
                         background_color: 0,0,0,0
-                        font_size: .55 * self.height
+                        font_size: .15 * (self.width + self.height)
                         id: tenSeven
                         text: '10-7'
-                        on_state: root.press107()
+                        state: 'normal'
+                        on_press: root.press107()
 
                 BoxLayout:
-                    padding: 30, 5
-                    #size_hint: .25, .75
+                    padding: self.width/10, self.height/1000, self.width/10, self.height/1000
+                    size_hint: 1, 1
                     ToggleButton:
                         canvas.before:
                             Color:
@@ -131,14 +146,14 @@
                                 size: self.size
                                 radius: [self.height * .5]
                         id: tenEight
-                        font_size: .55 * self.height
+                        font_size: .15 * (self.width + self.height)
                         background_color: 0,0,0,0
                         state: "down"
                         text: '10-8'
-                        on_state: root.press108()
+                        on_press: root.press108()
                 BoxLayout:
-                    padding: 30, 5
-                    #size_hint: .25, .75
+                    padding: self.width/10, self.height/1000, self.width/10, self.height/1000
+                    size_hint: 1, 1
                     ToggleButton:
                         canvas.before:
                             Color:
@@ -149,16 +164,27 @@
                                 radius: [self.height * .5]
                         background_color: 0,0,0,0
                         id: tenTwentyThree
-                        font_size: .55 * self.height
+                        font_size: .15 * (self.width + self.height)
                         state: "down"
                         text: '10-23'
+                        on_press: root.press1023()
 
 
                 BoxLayout:
-                    padding: 30, 5
-                    size_hint: .25, .75
+                    padding: self.width/2.5, self.height/1000, self.width/50, self.height/1000
+                    size_hint: 1, 1
+
                     Button:
+                        canvas.before:
+                            Color:
+                                rgba: (.55,.55,.55, .9) if self.state=='normal' else (.9, 0.9, .9, .85)  # visual feedback of press
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [self.height * .5]
                         text: 'Logout'
+                        font_size: .15 * (self.width + self.height)
+                        background_color: 0,0,0,0
                         id: logout
         BoxLayout:
             size: root.size
@@ -178,8 +204,9 @@
                 BoxLayout:
                     size_hint: 1, .5
                     padding: 0, 5, 0, 0
-                    MyLabel:
-                        size_hint: 1, .75
+                    Label:
+                        size_hint: 1, 1
+                        font_size: .05 * (self.width + self.height)
                         text: 'Current Call'
 
 
@@ -191,11 +218,11 @@
                         size_hint: .5, .75
                         font_size: self.height * .5
                         text: '   Call Type:  '
-                    MyLabel:
+                    Label:
                         id: type
                         size_hint: 1, .75
                         text: ' '
-                        font_size: '50dp'
+                        font_size: .05 * (self.width + self.height)
                         color: 0, 1, 0, .5
                         canvas.before:
                             Color:
@@ -212,10 +239,10 @@
                         size_hint: .5, .75
                         font_size: self.height * .5
                         text: 'Street Address: '
-                    MyLabel:
+                    Label:
                         id: addr
                         size_hint: 1, .75
-                        font_size: self.height * .75
+                        font_size: .05 * (self.width + self.height)
                         color: 0, 1, 0, .5
                         text: ' '
                         canvas.before:
@@ -336,19 +363,6 @@
                                 Rectangle:
                                     pos: self.pos
                                     size: self.size
-
-                BoxLayout:
-                    size_hint: 1, .5
-                    padding: 5, 5 , 20 , 5
-                    orientation: 'horizontal'
-                    MyLabel:
-                        text: 'Write Report:'
-
-                    BoxLayout:
-
-                        Button:
-                            size_x: .5
-                            text: 'Write Report'
 
             CallsBox:
                 id: cb
