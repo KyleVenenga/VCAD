@@ -1,6 +1,9 @@
 # VCAD
 ###### Computer Aided Dispatch system (CAD) for a security company.
 
+
+# [Video Walkthrough](https://drive.google.com/open?id=1bcmTM_wS1g6w5fqnwAujCVLIQ79yMMRF)
+
 ## Features
 
 * Account verification for dispatchers and officers
@@ -70,12 +73,3 @@
 - Officer: young1008 young
 - Dispatcher: paterson1005 paterson
 
-# Installation - Development 
-1. Open the folder 'Database File' and download the DB file
-2. Import the DB file into a local MySQL database
-3. Ensure that there is an account named 'vcad' with the password 'vcad123' 
-4. Start the server
-5. Clone/Download all of the python files, 'Audio' and 'Kivy Files' folders. 
-6. Ensure that all import dependencies are installed on local workstation
-
-# [Video Walkthrough](https://drive.google.com/open?id=1bcmTM_wS1g6w5fqnwAujCVLIQ79yMMRF)
