@@ -45,6 +45,7 @@ Builder.load_file('Kivy Files/RoundedButton.kv')
 # ----------------------------------------------------------------- #
 # FUNCTIONS
 
+
 # addNow
 # Adds the current time to the database for on scene time
 def addNow(id):
@@ -93,6 +94,7 @@ def updateAvailability(id, avail):
     cnx.commit()
     cnx.close()
     cursor.close()
+
 
 # updateOnline
 # Changes the online status of an officer by their id using a boolean, true for online.
@@ -148,6 +150,7 @@ class dispatchCall():
 class RoundedButton(Widget):
     def __init__(self, **kwargs):
         super(RoundedButton, self).__init__(**kwargs)
+
 
 class CallWidget(BoxLayout):
 
@@ -864,7 +867,7 @@ class LoginScreen(Screen):
                         return
                     # Otherwise they are an officer
                     else:
-                        globals.info[1] = row["officer_id"]
+                        globals.info[1] = row["officer_id"]     # Changes info
                         scrn.switch_to(globals.screens[0])
                         globals.screens[2] = OfficerScreen()
                         self.clear()
